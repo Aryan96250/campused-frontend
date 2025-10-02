@@ -1,0 +1,42 @@
+
+<app-header></app-header>
+<div class="pricing-page">
+  <div class="hero">
+    <div class="container">
+      <h1>Clear & Fair Pricing for</h1>
+      <h1 class="brand">Smart Students</h1>
+      <p>Choose the plan that helps you study smarter, save time and crack any exam<br>with AI-powered learning tools.</p>
+    </div>
+  </div>
+
+  <section class="tiers">
+    <div class="container">
+      <div class="grid">
+        <div class="card" *ngFor="let plan of plans" [class.popular]="plan.isPopular">
+          <div class="badge" *ngIf="plan.isPopular"><img src="assets/images/starIcon.png"/>Most Popular</div>
+          <h3>{{ plan.name }}</h3>
+          <p class="description">{{ plan.description }}</p>
+          <div class="price">{{ plan.price }} <span>One-time</span></div>
+          <span class="price-label" [innerHTML]="plan.priceLabel | newlineToBreak"></span>
+          
+          <ul>
+            <li *ngFor="let feature of plan.features">{{ feature }}</li>
+          </ul>
+          <button class="btn" [ngClass]="plan.buttonClass" (click)="onSelectPlan(plan.name)">
+            {{ plan.buttonText }}
+          </button>
+          <p class="guarantee">30-day money-back guarantee</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <div class="container">
+      <p>Over 1,00,000 students already trust ComputED AI to study smarter.</p>
+      <a href="#">View Pricing Page</a>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>

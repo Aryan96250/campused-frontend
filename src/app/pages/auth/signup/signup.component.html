@@ -1,0 +1,485 @@
+<section class="auth">
+  <div class="container">
+    <div class="row">
+      <!-- LEFT SIDE: Register Form -->
+      <div class="col-lg-5">
+        <div class="auth__form-wrapper">
+          <div class="auth__logo">
+            <img src="assets/images/Logo.png" alt="Campused.ai" />
+          </div>
+
+          <h1 class="auth__title">Create Your Free Account</h1>
+          <p style="color: #666;  font-size: 0.9rem;">
+            Join 17,000+ students already studying smarter with AI
+          </p>
+
+          <form
+            [formGroup]="registerForm"
+            (ngSubmit)="onSubmit()"
+            class="auth__form"
+          >
+            <!-- First Name & Last Name -->
+            <div style="display: flex; gap: 1rem; margin-bottom: -8px;">
+              <div class="form-group" style="flex: 1;">
+                <div class="input-wrapper">
+                  <input
+                   style="padding: 0.75rem 1rem 0.75rem 1rem !important;"
+                    type="text"
+                    id="firstName"
+                    formControlName="firstName"
+                    placeholder="First Name"
+                    [class.is-invalid]="
+                      (submitted || f['firstName'].touched) && f['firstName'].errors
+                    "
+                    [class.is-valid]="
+                      (submitted || f['firstName'].touched) &&
+                      !f['firstName'].errors &&
+                      f['firstName'].value
+                    "
+                  />
+                </div>
+                <div
+                  *ngIf="(submitted || f['firstName'].touched) && f['firstName'].errors"
+                  class="invalid-feedback"
+                >
+                  <span *ngIf="f['firstName'].errors['required']"
+                    >First name is required</span
+                  >
+                  <span *ngIf="f['firstName'].errors['minlength']"
+                    >Minimum 2 characters required</span
+                  >
+                </div>
+              </div>
+
+              <div class="form-group" style="flex: 1;">
+                <div class="input-wrapper">
+        
+                  <input
+                  style="padding: 0.75rem 1rem 0.75rem 1rem !important;"
+                    type="text"
+                    id="lastName"
+                    formControlName="lastName"
+                    placeholder="Last Name"
+                    [class.is-invalid]="
+                      (submitted || f['lastName'].touched) && f['lastName'].errors
+                    "
+                    [class.is-valid]="
+                      (submitted || f['lastName'].touched) &&
+                      !f['lastName'].errors &&
+                      f['lastName'].value
+                    "
+                  />
+                </div>
+                <div
+                  *ngIf="(submitted || f['lastName'].touched) && f['lastName'].errors"
+                  class="invalid-feedback"
+                >
+                  <span *ngIf="f['lastName'].errors['required']"
+                    >Last name is required</span
+                  >
+                  <span *ngIf="f['lastName'].errors['minlength']"
+                    >Minimum 2 characters required</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Gender & Nick Name -->
+            <div style="display: flex; gap: 1rem; margin-bottom: -8px;">
+              <div class="form-group" style="flex: 1;">
+                <div class="input-wrapper">
+                  <input
+                   style="padding: 0.75rem 1rem 0.75rem 1rem !important;"
+                    type="text"
+                    id="gender"
+                    formControlName="gender"
+                    placeholder="Male"
+                    [class.is-invalid]="
+                      (submitted || f['gender'].touched) && f['gender'].errors
+                    "
+                    [class.is-valid]="
+                      (submitted || f['gender'].touched) &&
+                      !f['gender'].errors &&
+                      f['gender'].value
+                    "
+                  />
+                  <!-- <select
+                    id="gender"
+                    formControlName="gender"
+                    [class.is-invalid]="
+                      (submitted || f['gender'].touched) && f['gender'].errors
+                    "
+                    [class.is-valid]="
+                      (submitted || f['gender'].touched) &&
+                      !f['gender'].errors &&
+                      f['gender'].value
+                    "
+                    style="width: 100%; padding: 0.75rem 1rem 0.75rem 1rem; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; background: white; cursor: pointer;"
+                  >
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </select> -->
+                </div>
+                <div
+                  *ngIf="(submitted || f['gender'].touched) && f['gender'].errors"
+                  class="invalid-feedback"
+                >
+                  <span *ngIf="f['gender'].errors['required']"
+                    >Gender is required</span
+                  >
+                </div>
+              </div>
+
+              <div class="form-group" style="flex: 1;">
+                <div class="input-wrapper">
+             
+                  <input
+                   style="padding: 0.75rem 1rem 0.75rem 1rem !important;"
+                    type="text"
+                    id="nickName"
+                    formControlName="nickName"
+                    placeholder="Nick"
+                    [class.is-invalid]="
+                      (submitted || f['nickName'].touched) && f['nickName'].errors
+                    "
+                    [class.is-valid]="
+                      (submitted || f['nickName'].touched) &&
+                      !f['nickName'].errors &&
+                      f['nickName'].value
+                    "
+                  />
+                </div>
+                <div
+                  *ngIf="(submitted || f['nickName'].touched) && f['nickName'].errors"
+                  class="invalid-feedback"
+                >
+                  <span *ngIf="f['nickName'].errors['required']"
+                    >Nickname is required</span
+                  >
+                  <span *ngIf="f['nickName'].errors['minlength']"
+                    >Minimum 2 characters required</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <img src="assets/images/email.png" alt="email icon" />
+                </span>
+                <input
+                  type="email"
+                  id="email"
+                  formControlName="email"
+                  placeholder="vinny@email.com"
+                  [class.is-invalid]="
+                    (submitted || f['email'].touched) && f['email'].errors
+                  "
+                  [class.is-valid]="
+                    (submitted || f['email'].touched) &&
+                    !f['email'].errors &&
+                    f['email'].value
+                  "
+                />
+              </div>
+              <div
+                *ngIf="(submitted || f['email'].touched) && f['email'].errors"
+                class="invalid-feedback"
+              >
+                <span *ngIf="f['email'].errors['required']"
+                  >Email is required</span
+                >
+                <span *ngIf="f['email'].errors['email']"
+                  >Please enter a valid email</span
+                >
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <img src="assets/images/passwordlock.png" alt="lock icon" />
+                </span>
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
+                  id="password"
+                  formControlName="password"
+                  placeholder="Password"
+                  [class.is-invalid]="
+                    (submitted || f['password'].touched) && f['password'].errors
+                  "
+                  [class.is-valid]="
+                    (submitted || f['password'].touched) &&
+                    !f['password'].errors &&
+                    f['password'].value
+                  "
+                />
+                <button
+                  type="button"
+                  class="password-toggle"
+                  (click)="togglePasswordVisibility()"
+                >
+                  <svg
+                    *ngIf="!showPassword"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                  >
+                    <path
+                      d="M10 7a3 3 0 100 6 3 3 0 000-6z"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    />
+                    <path
+                      d="M10 3C5 3 1.73 7.11 1 10c.73 2.89 4 7 9 7s8.27-4.11 9-7c-.73-2.89-4-7-9-7z"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                  <svg
+                    *ngIf="showPassword"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                  >
+                    <path
+                      d="M3 3l14 14M10.5 13a3 3 0 01-3-3M7.5 7a3 3 0 013-3"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div
+                *ngIf="
+                  (submitted || f['password'].touched) && f['password'].errors
+                "
+                class="invalid-feedback"
+              >
+                <span *ngIf="f['password'].errors['required']"
+                  >Password is required</span
+                >
+                <span *ngIf="f['password'].errors['minlength']"
+                  >Password must be at least 6 characters</span
+                >
+              </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <img src="assets/images/passwordlock.png" alt="lock icon" />
+                </span>
+                <input
+                  [type]="showConfirmPassword ? 'text' : 'password'"
+                  id="confirmPassword"
+                  formControlName="confirmPassword"
+                  placeholder="Confirm Password"
+                  [class.is-invalid]="
+                    (submitted || f['confirmPassword'].touched) && 
+                    (f['confirmPassword'].errors || registerForm.errors?.['passwordMismatch'])
+                  "
+                  [class.is-valid]="
+                    (submitted || f['confirmPassword'].touched) &&
+                    !f['confirmPassword'].errors &&
+                    !registerForm.errors?.['passwordMismatch'] &&
+                    f['confirmPassword'].value
+                  "
+                />
+                <button
+                  type="button"
+                  class="password-toggle"
+                  (click)="toggleConfirmPasswordVisibility()"
+                >
+                  <svg
+                    *ngIf="!showConfirmPassword"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                  >
+                    <path
+                      d="M10 7a3 3 0 100 6 3 3 0 000-6z"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    />
+                    <path
+                      d="M10 3C5 3 1.73 7.11 1 10c.73 2.89 4 7 9 7s8.27-4.11 9-7c-.73-2.89-4-7-9-7z"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                  <svg
+                    *ngIf="showConfirmPassword"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                  >
+                    <path
+                      d="M3 3l14 14M10.5 13a3 3 0 01-3-3M7.5 7a3 3 0 013-3"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div
+                *ngIf="
+                  (submitted || f['confirmPassword'].touched) && 
+                  (f['confirmPassword'].errors || registerForm.errors?.['passwordMismatch'])
+                "
+                class="invalid-feedback"
+              >
+                <span *ngIf="f['confirmPassword'].errors?.['required']"
+                  >Please confirm your password</span
+                >
+                <span *ngIf="registerForm.errors?.['passwordMismatch'] && !f['confirmPassword'].errors?.['required']"
+                  >Passwords do not match</span
+                >
+              </div>
+            </div>
+
+            <!-- Preparing For -->
+            <div class="form-group">
+              <div class="input-wrapper">
+                <select
+                  id="preparingFor"
+                  formControlName="preparingFor"
+                  [class.is-invalid]="
+                    (submitted || f['preparingFor'].touched) && f['preparingFor'].errors
+                  "
+                  [class.is-valid]="
+                    (submitted || f['preparingFor'].touched) &&
+                    !f['preparingFor'].errors &&
+                    f['preparingFor'].value
+                  "
+                  style="width: 100%; padding: 0.75rem 1rem 0.75rem 1rem; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; background: white; cursor: pointer;"
+                >
+                  <option value="" disabled selected>Preparing For?</option>
+                  <option value="NEET">NEET</option>
+                  <option value="JEE">JEE</option>
+                  <option value="UPSC">UPSC</option>
+                  <option value="IELTS">IELTS</option>
+                  <option value="CAT">CAT</option>
+                  <option value="GATE">GATE</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div
+                *ngIf="(submitted || f['preparingFor'].touched) && f['preparingFor'].errors"
+                class="invalid-feedback"
+              >
+                <span *ngIf="f['preparingFor'].errors['required']"
+                  >Please select what you're preparing for</span
+                >
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn btn--primary">Start Studying Free</button>
+
+            <!-- Footer -->
+            <p class="auth__footer" style="margin-top: 1rem;">
+              <span style="color: #a6a6a6">Already have an account?</span>
+              <a [routerLink]="'/login'">Login</a>
+            </p>
+
+            <!-- Social Login -->
+            <div class="social-login">
+              <button type="button" class="btn btn--social google" (click)="registerWithGoogle()" style="border-radius: 28px;">
+                <img src="assets/images/google.png" alt="Google" />
+              </button>&nbsp;&nbsp;&nbsp;
+              <button type="button" class="btn btn--social apple" (click)="registerWithApple()" style="border-radius: 28px;">
+                <img src="assets/images/apple.png" alt="Apple" />
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDE: Banner -->
+      <div class="col-lg-7">
+        <div class="auth__banner">
+          <div class="banner-lineimg-2">
+          <img src="assets/images/card-line-2.png" alt="Campused.ai" />
+          </div>
+          <div class="banner-lineimg">
+          <img src="assets/images/card-line.png" alt="Campused.ai" />
+          </div>
+          <div class="banner-lineimg-3">
+          <img src="assets/images/card-line-3.png" alt="Campused.ai" />
+          </div>
+          <div class="banner-lineimg-4">
+          <img src="assets/images/card-line-4.png" alt="Campused.ai" />
+          </div>
+          <div class="banner-dot">
+          <img src="assets/images/dot.png" alt="Campused.ai" />
+          </div>
+          <div class="banner-content">
+            <div class="banner-text">
+            <img src="assets/images/LoginScoller.png" alt="Campused.ai" />
+            </div>
+            <p class="banner-label">Campused.ai</p>
+            <h2 class="banner-title">Welcome to Campused.ai</h2>
+            <p class="banner-subtitle">
+              Get AI-Powered summaries, quizzes, flashcards & voice notes to save time<br>and boost your scores.
+            </p>
+
+            <div class="banner-features">
+              <h3>Study Smarter.<br />Crack Exams Faster</h3>
+
+              <div class="feature-box">
+                <ul class="feature-list">
+                  <li>
+                    <img src="assets/images/tick.png" alt="check" />
+                    Trusted by 17,000+ Students
+                  </li>
+                  <li>
+                    <img src="assets/images/tick.png" alt="check" />
+                    Used for NEET, JEE, UPSC, IELTS & more
+                  </li>
+                  <li>
+                    <img src="assets/images/tick.png" alt="check" />
+                    Available in English, Hindi, Tamil & more
+                  </li>
+                </ul>
+
+                <div class="user-avatars">
+                  <img
+                    src="assets/images/person.jpg"
+                    alt="User 1"
+                  />
+                  <img
+                    src="assets/images/person2.jpg"
+                    alt="User 2"
+                  />
+                  <img
+                    src="assets/images/person3.jpg"
+                    alt="User 3"
+                  />
+                  <img
+                    src="assets/images/person4.jpg"
+                    alt="User 4"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END Banner -->
+    </div>
+  </div>
+</section>

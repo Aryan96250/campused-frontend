@@ -1,0 +1,29 @@
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div>
+        <h4>COMPANY</h4>
+        <ul>
+          <li *ngFor="let link of companyLinks">
+            <a [href]="link.url">{{ link.label }}</a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="footer__logo">
+        <img src="assets/images/footerImage.png" alt="CampusED.AI"/>
+      </div>
+      
+      <div>
+        <h4>GET IN TOUCH</h4>
+        <ul>
+          <li *ngFor="let link of socialLinks">
+            <a [href]="link.url">{{ link.label }}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    
+    <p class="credit">Designed by <span>Uxity</span></p>
+  </div>
+</footer>

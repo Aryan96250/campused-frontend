@@ -1,0 +1,7 @@
+.hero{padding:56px 0;text-align:center}
+    .title{font-size:56px;font-weight:700;margin:0 0 10px}
+    .subtitle{color:var(--muted);margin:0 0 24px}
+
+.grid{display:grid;grid-template-columns:1fr;gap:16px}
+.card{background:#fff;border:1px solid #eee;border-radius:16px;padding:20px}
+@media(min-width:900px){.grid{grid-template-columns:repeat(4,1fr)}}

@@ -1,3 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+
 .btn{display:inline-block;padding:.7rem 1.1rem;border-radius:12px;font-weight:700;text-decoration:none}
 .btn--primary{background:var(--orange);color:#fff;box-shadow:0 6px 16px rgba(255,111,61,.25)}
 .btn--ghost{background:#f3f4f6;color:#111}
@@ -81,7 +84,7 @@
     font-family: 'Quicksand', sans-serif;
     font-size: 32px;
     font-weight: 700;
-    color: var(--primary-orange);
+    color: #FF5835;
     text-align: center;
     margin: 0 0 40px;
   }
@@ -250,12 +253,14 @@
 
 // RESULTS SECTION
 .results {
-  max-width: 700px;
+  // max-width: 700px;
+  padding-left: 70px;
   margin: 0 auto;
-  text-align: center;
+  // text-align: center;
 
   &__header {
     margin-bottom: 24px;
+    text-align: center;
   }
 
   &__title-gray {
@@ -270,7 +275,7 @@
     font-family: 'Quicksand', sans-serif;
     font-size: 28px;
     font-weight: 700;
-    color: var(--primary-orange);
+    color: #FF5835;
     margin: 0;
   }
 
@@ -293,28 +298,32 @@
 
   &__trust {
     font-family: 'Quicksand', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--secondary-gray);
+    font-size: 23px;
+    font-weight: 600;
+    color: #606060;
     margin: 0;
   }
 }
 
+.process__text{
+    margin-top: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #606060;
+}
+
 /* UPGRADE */
 .upgrade {
-
-    padding: 0px 12px;
-    background: #FCCC41;
-    border-radius: 37px;
-    /* height: 80px; */
-    width: 1080px;
-    display: flex;
-    height: 430px;
-
-    /* justify-content: center; */
-    align-items: center;
-    justify-self: anchor-center;
-    margin-bottom: 60px;
+  padding: 0px 12px;
+  background: #FCCC41;
+  border-radius: 37px;
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  height: 430px;
+  align-items: center;
+  margin: 0 auto 60px;
+  position: relative;
 }
 
 .upgrade__inner {
@@ -322,30 +331,47 @@
   grid-template-columns: 1fr;
   gap: 24px;
   align-items: center;
+  position: relative;
+  width: 100%;
 }
+
 .upgrade__content h3 {
   font-size: 47px;
   margin: 0 0 14px;
-    font-weight: 300;
+  font-weight: 300;
 }
 
 .upgrade__content h3 span.accent-2, 
-.upgrade__content h3 span.free{
+.upgrade__content h3 span.free {
   font-weight: 700;
   color: white;
 }
-.upgrade__content ul {
-  // margin: 0 0 18px 18px;
-}
+
 .upgrade__content li {
   margin: 0.4rem 0;
   font-size: 14px;
 }
+
 .upgrade__art {
   height: 200px;
   border-radius: 20px;
   background: linear-gradient(145deg, #fff1c2, #ffd28a);
 }
+
+img.person_image {
+  width: 275px;
+  position: absolute;
+  right: -11px;
+  bottom: -66px;
+}
+
+img.person_image1 {
+  position: absolute;
+  right: -11px;
+  width: 483px;
+  bottom: -66px;
+}
+
 @media (min-width: 900px) {
   .upgrade__inner {
     grid-template-columns: 1.2fr 0.8fr;
@@ -355,38 +381,8 @@
   }
 }
 
-img.person_image {
-    width: 483px;
-    position: absolute;
-    right: 134px;
-    top: 1739px;
-}
-img.person_image1 {
-position: absolute;
-    right: 133px;
-    width: 483px;
-    top: 1741px;
-}
 
-.card-images img{
-      position: absolute;
-    top: 1904px;
-    width: 120px;
-    left: right;
-    right: 274px;
-}
-
-.card-images1 img{
-    position: absolute;
-    top: 1917px;
-    width: 41px;
-    left: right;
-    right: 293px;
-
-}
-
-
-/* HERO ART */
+// /* HERO ART */
 img.brand__logo {
   width: 292.9999694824219px !important;
   height: 97px !important;

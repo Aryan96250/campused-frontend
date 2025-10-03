@@ -6,6 +6,9 @@ import { ContactUsComponent } from './pages/contact-us/contact-us.component';
 import { LoginComponent } from './pages/auth/login/login.component';
 import { SignupComponent } from './pages/auth/signup/signup.component';
 import { AuthGuard } from './helpers/auth/auth.guards';
+import { ForgotPasswordComponent } from './pages/auth/forgot-password/forgot-password/forgot-password.component';
+import { OtpComponent } from './pages/auth/otp/otp/otp.component';
+import { ResetPasswordComponent } from './pages/auth/reset-password/reset-password.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -14,6 +17,9 @@ export const routes: Routes = [
   { path: 'contact-us', component: ContactUsComponent },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
+  { path: 'forgot', component: ForgotPasswordComponent },
+  { path: 'otp', component: OtpComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
   { path: '**', redirectTo: '' }
 ];
 // ,canActivate: [AuthGuard]

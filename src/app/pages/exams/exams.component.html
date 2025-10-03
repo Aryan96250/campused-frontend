@@ -1,15 +1,81 @@
-<section class="hero">
-      <div class="container">
-        <h1 class="title">Practice for NEET, JEE, UPSC & more</h1>
-        <p class="subtitle">Topic-wise quizzes, timed mocks, and instant analytics.</p>
-      </div>
-    </section>
+<app-header></app-header>
 
-<section class="features">
-  <div class="container grid">
-    <div class="feat card">NEET Biology decks</div>
-    <div class="feat card">JEE Physics problems</div>
-    <div class="feat card">UPSC GS notes</div>
-    <div class="feat card">IELTS vocabulary</div>
+<section class="hero" [@fadeInUp]>
+  <div class="container">
+    <h1 class="title">Personalized Practice Setup</h1>
+    <p class="subtitle">
+      Choose your preferences below to get customized quiz suggestions.
+    </p>
+    <div class="hero-animation"></div> <!-- Background animation layer -->
   </div>
 </section>
+
+<section class="onboarding" [@fadeInUp]>
+  <div class="container">
+    <div class="dropdown-grid">
+      <!-- Dropdown 1: Exam (no delay) -->
+      <div class="dropdown card" [@fadeInUp]>
+        <label><i class="fas fa-graduation-cap"></i> Select Exam</label>
+        <select [(ngModel)]="selections.exam" (change)="updateResponse()" aria-label="Select Exam">
+          <option value="">-- Choose --</option>
+          <option value="neet">NEET</option>
+          <option value="jee">JEE</option>
+          <option value="upsc">UPSC</option>
+          <option value="ielts">IELTS</option>
+        </select>
+      </div>
+
+      <!-- Dropdown 2: Subject (0.1s delay via CSS) -->
+      <div class="dropdown card" [@fadeInUp]>
+        <label><i class="fas fa-book"></i> Select Subject</label>
+        <select [(ngModel)]="selections.subject" (change)="updateResponse()" aria-label="Select Subject">
+          <option value="">-- Choose --</option>
+          <option value="biology">Biology</option>
+          <option value="physics">Physics</option>
+          <option value="chemistry">Chemistry</option>
+          <option value="gs">General Studies</option>
+        </select>
+      </div>
+
+      <!-- Dropdown 3: Level (0.2s delay via CSS) -->
+      <div class="dropdown card" [@fadeInUp]>
+        <label><i class="fas fa-level-up-alt"></i> Difficulty Level</label>
+        <select [(ngModel)]="selections.level" (change)="updateResponse()" aria-label="Select Difficulty Level">
+          <option value="">-- Choose --</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+
+      <!-- Dropdown 4: Language (0.3s delay via CSS) -->
+      <div class="dropdown card" [@fadeInUp]>
+        <label><i class="fas fa-globe"></i> Preferred Language</label>
+        <select [(ngModel)]="selections.language" (change)="updateResponse()" aria-label="Select Preferred Language">
+          <option value="">-- Choose --</option>
+          <option value="english">English</option>
+          <option value="hindi">Hindi</option>
+        </select>
+      </div>
+
+      <!-- Dropdown 5: Mode (0.4s delay via CSS) -->
+      <div class="dropdown card" [@fadeInUp]>
+        <label><i class="fas fa-play-circle"></i> Practice Mode</label>
+        <select [(ngModel)]="selections.mode" (change)="updateResponse()" aria-label="Select Practice Mode">
+          <option value="">-- Choose --</option>
+          <option value="topicwise">Topic-wise</option>
+          <option value="mocktest">Mock Test</option>
+          <option value="flashcards">Flashcards</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Response Section -->
+    <div class="response card" *ngIf="response" [@bounceIn]>
+      <h3><i class="fas fa-lightbulb"></i> Recommended Practice:</h3>
+      <p>{{ response }}</p>
+    </div>
+  </div>
+</section>
+
+<app-footer></app-footer>

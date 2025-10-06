@@ -1,0 +1,267 @@
+<app-header></app-header>
+<div class="chat-container">
+  <div class="chat-messages">
+    <div *ngIf="messages.length === 0" class="chat-empty">
+      <p>Start a conversation by asking anything...</p>
+    </div>
+
+    <div 
+      *ngFor="let message of messages; let i = index" 
+      class="message"
+      [class.message--user]="message.isUser "
+      [class.message--ai]="!message.isUser "
+    >
+      <!-- Avatar (commented out as in original) -->
+      <!-- <div class="message__avatar">
+        <span *ngIf="message.isUser ">👤</span>
+        <span *ngIf="!message.isUser ">🤖</span>
+      </div> -->
+      
+      <div class="message__content">
+        <div class="message__text" [class.message__text--loading]="message.isLoading">
+          <!-- Loading indicator -->
+          <span *ngIf="message.isLoading" class="loading-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+          
+          <!-- Text-only message -->
+          <span *ngIf="!message.isLoading && !message.files && message.text">{{ message.text }}</span>
+          
+          <!-- Combined Text + Files Preview -->
+          <div *ngIf="!message.isLoading && message.text && message.files && message.files.length > 0" class="message__combined">
+            <p>{{ message.text }}</p>
+            <div class="message__file-preview">
+              <div *ngFor="let file of message.files" class="preview-item">
+                <!-- Image preview -->
+                <img 
+                  *ngIf="isImageFile(file.type)" 
+                  [src]="message.fileUrls?.[file.name] || createPreviewUrl(file)" 
+                  [alt]="file.name"
+                  class="preview-thumbnail"
+                  (error)="onImageLoadError($event)"
+                >
+                
+                <!-- Non-image file info with download -->
+                <div *ngIf="!isImageFile(file.type)" class="file-info">
+                  <a 
+                    [href]="message.fileUrls?.[file.name] || createPreviewUrl(file)" 
+                    [download]="file.name" 
+                    class="file-name"
+                    target="_blank"
+                  >
+                    📎 {{ file.name }}
+                  </a>
+                  <div class="file-size">
+                    {{ formatFileSize(file.size) }} 
+                    <!-- • {{ file.type }} -->
+                  </div>
+                </div>
+                
+                <!-- Image file info (below preview) -->
+                <div *ngIf="isImageFile(file.type)" class="file-info">
+                  <!-- <div class="file-size">{{ formatFileSize(file.size) }} • {{ file.type }}</div> -->
+                  <!-- <div class="file-size">{{ formatFileSize(file.size) }}</div> -->
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Files-Only Preview (no text) -->
+          <div *ngIf="!message.isLoading && !message.text && message.files && message.files.length > 0" class="message__file-preview">
+            <div *ngFor="let file of message.files" class="preview-item">
+              <!-- Image preview -->
+              <img 
+                *ngIf="isImageFile(file.type)" 
+                [src]="message.fileUrls?.[file.name] || createPreviewUrl(file)" 
+                [alt]="file.name"
+                class="preview-thumbnail"
+                (error)="onImageLoadError($event)"
+              >
+              
+              <!-- Non-image file info with download -->
+              <div *ngIf="!isImageFile(file.type)" class="file-info">
+                <a 
+                  [href]="message.fileUrls?.[file.name] || createPreviewUrl(file)" 
+                  [download]="file.name" 
+                  class="file-name"
+                  target="_blank"
+                >
+                  📎 {{ file.name }}
+                </a>
+                <button class="download-btn" (click)="downloadFile(file)" title="Download file">
+                  📥
+                </button>
+                <div class="file-size">
+                  {{ formatFileSize(file.size) }} • {{ file.type }}
+                </div>
+              </div>
+              
+              <!-- Image file info (below preview) -->
+              <div *ngIf="isImageFile(file.type)" class="file-info">
+                <div class="file-size">{{ formatFileSize(file.size) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- ChatGPT-Like Feedback (Only for AI Messages) -->
+        <div *ngIf="!message.isUser  && !message.isLoading" class="message__feedback">
+          <!-- Copy Button -->
+          <button 
+            class="feedback-btn"
+            title="Copy response"
+            (click)="copyMessageText(i)"
+          >
+            <img src="assets/images/copy.png" alt="copy icon" class="image-icons"/>
+          </button>
+          
+          <!-- Download Button (for response text) -->
+          <button 
+            class="feedback-btn"
+            title="Download response"
+            (click)="downloadResponse(i)"
+          >
+            <img src="assets/images/download.png" alt="download icon" class="image-icons"/>
+          </button>
+          
+          <!-- Like Button -->
+          <button 
+            class="feedback-btn like-btn" 
+            [class.active]="feedbackStates[message.id].isLiked || message.feedback?.isLiked"
+            (click)="toggleFeedback(i, true)"
+            title="This was helpful"
+          >
+            <img src="assets/images/like.png" alt="like icon" class="image-icons"/>
+          </button>
+          
+          <!-- Unlike Button -->
+          <button 
+            class="feedback-btn dislike-btn" 
+            [class.active]="feedbackStates[message.id].isDisliked || message.feedback?.isDisliked"
+            (click)="toggleFeedback(i, false)"
+            title="This wasn't helpful"
+          >
+            <img src="assets/images/unlike.png" alt="dislike icon" class="image-icons" />
+          </button>
+          
+          <!-- Restart Button (clears entire chat) -->
+          <button 
+            class="feedback-btn"
+            title="Restart conversation"
+            (click)="onRestart()"
+          >
+            <img src="assets/images/restart.png" alt="restart icon" class="image-icons"/>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Input Area -->
+  <div class="chat-input">
+    <div 
+      class="ask" 
+      (dragover)="onDragOver($event)" 
+      (dragleave)="onDragLeave($event)" 
+      (drop)="onDrop($event)"
+      [class.drag-over]="isDragOver"
+      (click)="onAskClick($event)"
+    >
+      <!-- Text Input -->
+      <input 
+        type="text" 
+        placeholder="Ask anything......" 
+        class="ask__input" 
+        [(ngModel)]="userQuery"
+        (keyup.enter)="onSubmitQuery()"
+        [disabled]="isProcessing"
+      />
+      
+      <!-- Hidden File Input for Uploads -->
+      <input 
+        type="file" 
+        #fileInput 
+        multiple 
+        accept="*"
+        (change)="onFileSelected($event)"
+        style="display: none;"
+      />
+      
+      <!-- File Previews in Input (ChatGPT-Style: Show before sending) -->
+      <div *ngIf="selectedFiles.length > 0" class="input-file-previews">
+        <div *ngFor="let file of selectedFiles; let j = index" class="preview-item">
+          <img 
+            *ngIf="isImageFile(file.type)" 
+            [src]="createPreviewUrl(file)" 
+            [alt]="file.name"
+            class="preview-thumbnail"
+            (error)="onImageLoadError($event)"
+          >
+          <div *ngIf="!isImageFile(file.type)" class="file-icon">📎</div>
+          <div class="preview-info">
+            <span class="preview-name">{{ file.name }}</span>
+            <span class="preview-size">{{ formatFileSize(file.size) }}</span>
+          </div>
+          <button class="remove-preview" (click)="removeSelectedFile(j)" title="Remove">
+            ×
+          </button>
+        </div>
+      </div>
+      
+      <!-- Controls -->
+      <div class="ask__controls">
+        <div class="ask__controls-left">
+          <!-- "+" Button (For File Upload) -->
+          <button 
+            class="ask__expand" 
+            aria-label="Upload File"
+            (click)="fileInput.click()"
+            [disabled]="isProcessing"
+            title="Attach files"
+          >
+            +
+          </button>
+          
+          <!-- Options Button -->
+          <button 
+            class="ask__options" 
+            aria-label="Options"
+            (click)="onShowOptions($event)"
+            [disabled]="isProcessing"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+              <path d="M6 8L2 4h8L6 8z" />
+            </svg>
+            <span>Options</span>
+          </button>
+        </div>
+        
+        <!-- Submit Button (with file count badge) -->
+        <button 
+          class="ask__submit" 
+          aria-label="Submit"
+          (click)="onSubmitQuery()"
+          [disabled]="(!userQuery.trim() && selectedFiles.length === 0) || isProcessing"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path 
+              d="M10 4L10 16M10 4L6 8M10 4L14 8" 
+              stroke="currentColor" 
+              stroke-width="2" 
+              stroke-linecap="round"
+            />
+          </svg>
+          <span *ngIf="selectedFiles.length > 0" class="file-badge">{{ selectedFiles.length }}</span>
+        </button>
+      </div>
+      
+      <!-- Drag-and-Drop Hint -->
+      <div *ngIf="isDragOver" class="drag-hint">
+        Drop files here to upload...
+      </div>
+    </div>
+  </div>
+</div>
+<app-footer></app-footer>

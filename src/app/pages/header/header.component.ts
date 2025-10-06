@@ -10,10 +10,12 @@ import { ActivatedRoute, RouterLink, RouterModule, Router } from '@angular/route
 } )
 export class HeaderComponent{
   currentPath: any;
+  currentUrl: any;
 
   constructor(private router: Router) {
-    this.currentPath = this.router.url == "/pricing";    
-    console.log(this.currentPath) // gives "/pricing"
+    this.currentPath = this.router.url == "/pricing"; 
+    this.currentUrl = this.router.url == '/'  
+    console.log(this.currentPath, this.currentUrl) // gives "/pricing"
   }     
 
 

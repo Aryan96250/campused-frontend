@@ -28,26 +28,59 @@
     </div>
   </section>
 
- <section class="input-block">
+  <section class="input-block">
     <div class="container">
       <h2 class="input-block__title">Paste your textbook → Get instant</h2>
-      <p class="input-block__tagline">AI summaries, flashcards, quizzes & voice notes.</p>
-      
+      <p class="input-block__tagline">
+        AI summaries, flashcards, quizzes & voice notes.
+      </p>
+
       <div class="ask">
-        <input type="text" placeholder="Ask anything......" class="ask__input" />
+        <input
+          type="text"
+          placeholder="Ask anything......"
+          class="ask__input"
+          [(ngModel)]="userQuery"
+          (keyup.enter)="onSubmitQuery()"
+        />
         <div class="ask__controls">
           <div class="ask__controls-left">
-            <button class="ask__expand" aria-label="Expand">+</button>
-            <button class="ask__options" aria-label="Options">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <button
+              class="ask__expand"
+              aria-label="Expand"
+              (click)="onExpandInput()"
+            >
+              +
+            </button>
+            <button
+              class="ask__options"
+              aria-label="Options"
+              (click)="onShowOptions()"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="currentColor"
+              >
                 <path d="M6 8L2 4h8L6 8z" />
               </svg>
               <span>Options</span>
             </button>
           </div>
-          <button class="ask__submit" aria-label="Submit">
+          <button
+            class="ask__submit"
+            aria-label="Submit"
+            (click)="onSubmitQuery()"
+            [disabled]="!userQuery.trim()"
+          >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M10 4L10 16M10 4L6 8M10 4L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path
+                d="M10 4L10 16M10 4L6 8M10 4L14 8"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
             </svg>
           </button>
         </div>
@@ -56,20 +89,22 @@
       <div class="process">
         <div class="process__item">
           <div class="process__icon process__icon--upload">
-             <img src="assets/images/Upload.png" alt="upload icon" />
+            <img src="assets/images/Upload.png" alt="upload icon" />
           </div>
           <p class="process__text">Upload your Notes /<br />Textbook</p>
         </div>
 
         <div class="process__arrow">
-           <img src="assets/images/Arrow.png" alt="arrow icon" />
+          <img src="assets/images/Arrow.png" alt="arrow icon" />
         </div>
 
         <div class="process__item">
           <div class="process__icon process__icon--ai">
             <img src="assets/images/robot.png" alt="ai icon" />
           </div>
-          <p class="process__text">AI Creates<br />Summaries, Quizzes,<br />Flashcards</p>
+          <p class="process__text">
+            AI Creates<br />Summaries, Quizzes,<br />Flashcards
+          </p>
         </div>
 
         <div class="process__arrow">
@@ -78,7 +113,7 @@
 
         <div class="process__item">
           <div class="process__icon process__icon--degree">
-             <img src="assets/images/Degree.png" alt="degree icon" />
+            <img src="assets/images/Degree.png" alt="degree icon" />
           </div>
           <p class="process__text">Revise Smarter Score<br />Higher in Exams</p>
         </div>
@@ -90,22 +125,42 @@
           <h3 class="results__title-brand">Campused.AI</h3>
         </div>
         <ul class="results__list">
-          <li><img src="assets/images/green-tick.png" />&nbsp;Study 10x Faster with instant AI summaries</li>
-          <li><img src="assets/images/green-tick.png"/>&nbsp;Create Smart Flashcards & Quizzes automatically</li>
-          <li><img src="assets/images/green-tick.png"/>&nbsp;Revise with Voice Notes on the go</li>
-          <li><img src="assets/images/green-tick.png"/>&nbsp;Work in English, Hindi, Tamil & more</li>
+          <li>
+            <img src="assets/images/green-tick.png" />&nbsp;Study 10x Faster
+            with instant AI summaries
+          </li>
+          <li>
+            <img src="assets/images/green-tick.png" />&nbsp;Create Smart
+            Flashcards & Quizzes automatically
+          </li>
+          <li>
+            <img src="assets/images/green-tick.png" />&nbsp;Revise with Voice
+            Notes on the go
+          </li>
+          <li>
+            <img src="assets/images/green-tick.png" />&nbsp;Work in English,
+            Hindi, Tamil & more
+          </li>
         </ul>
-        <p class="results__trust">Trusted by 10,000+ Students preparing for NEET, JEE, UPSC, IELTS</p>
+        <p class="results__trust">
+          Trusted by 10,000+ Students preparing for NEET, JEE, UPSC, IELTS
+        </p>
       </div>
     </div>
   </section>
 
-   <section class="upgrade">
+  <section class="upgrade">
     <div class="container upgrade__inner">
       <div class="upgrade__content">
-        <h3>Upgrade your <span class="accent-2">SKILLS</span> with <span class="free">FREE</span> Campused.ai</h3>
+        <h3>
+          Upgrade your <span class="accent-2">SKILLS</span> with
+          <span class="free">FREE</span> Campused.ai
+        </h3>
         <ul>
-          <li>✅ Used by 10,000+ students preparing for JEE, NEET, UPSC, IELTS & more</li>
+          <li>
+            ✅ Used by 10,000+ students preparing for JEE, NEET, UPSC, IELTS &
+            more
+          </li>
           <li>✅ No ads. No distractions. Just AI-powered focus</li>
           <li>✅ Works in English, Hindi, Tamil & more coming soon</li>
         </ul>
@@ -114,14 +169,111 @@
       <!-- <div class="upgrade__art" aria-hidden="true"> -->
 
       <!-- </div> -->
-       <div class="person-image">
-        <img src="assets/images/card-person.png" alt="" class="person_image">
-       </div>
-       <div class="person-image1" >
-        <img src="assets/images/background-card.png" alt="" class="person_image1">
-       </div>
-
+      <div class="person-image">
+        <img src="assets/images/card-person.png" alt="" class="person_image" />
+      </div>
+      <div class="person-image1">
+        <img
+          src="assets/images/background-card.png"
+          alt=""
+          class="person_image1"
+        />
+      </div>
     </div>
   </section>
+
+  <section class="results-2">
+    <div class="results-2">
+      <div class="results__header__new">
+        <h3 class="results__title-gray">Our</h3>
+        <h3 class="results__title-brand">Features</h3>
+      </div>
+
+      <div class="result-section">
+        <div class="result-cards">
+          <img
+            src="assets/images/ai-summary.png"
+            alt="AI Summary"
+            class="ai-summary"
+          /><br />
+          <p class="bold-text">AI Summaries</p>
+          <p class="medium-text">Quick notes in seconds</p>
+        </div>
+
+        <div class="result-cards">
+          <img
+            src="assets/images/flash-cards.png"
+            alt="Flashcards"
+            class="ai-summary"
+          /><br />
+          <p class="bold-text">Flashcards</p>
+          <p class="medium-text">Memorize faster automatically</p>
+        </div>
+
+        <div class="result-cards">
+          <img
+            src="assets/images/quizzes.png"
+            alt="Quizzes"
+            class="ai-summary"
+          /><br />
+          <p class="bold-text">Quizzes</p>
+          <p class="medium-text">Test your knowledge instantly</p>
+        </div>
+
+        <div class="result-cards">
+          <img
+            src="assets/images/voice-notes.png"
+            alt="Voice Notes"
+            class="ai-summary"
+          /><br />
+          <p class="bold-text">Voice Notes</p>
+          <p class="medium-text">Revise on the go</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="testimonials-section">
+  <div class="header">
+    <div class="">
+      <h3>Student <span>Testimonials</span></h3>
+      <p>Diam quis enim lobortis scelerisque fermentum dui faucibus. Uma nunc id cursus</p>
+    </div>
+    <div class="d-flex gap-5 align-items-center">
+      <p class="arrow left" (click)="prev()">
+        <img src="assets/images/Arrow-right.png" alt="left arrow" />
+      </p>
+      <p class="arrow right" (click)="next()">
+        <img src="assets/images/Arrow-left.png" alt="left arrow" />
+      </p>
+    </div>
+  </div>
+  
+  <div class="carousel">
+
+    <div class="carousel-window">
+      <div class="carousel-track" [style.transform]="translateX">
+        <div class="card" *ngFor="let t of testimonials">
+          <div class="stars">
+            <ng-container *ngFor="let s of [].constructor(5); let i = index">
+              <i class="fas" [ngClass]="i < t.rating ? 'fa-star filled' : 'fa-star empty'"></i>
+            </ng-container>
+          </div>
+          <p class="text">{{ t.text }}</p>
+          <div class="profile">
+            <img [src]="t.img" alt="{{t.name}}">
+            <div>
+              <h4>{{ t.name }}</h4>
+              <p>{{ t.course }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
 </main>
 <app-footer></app-footer>

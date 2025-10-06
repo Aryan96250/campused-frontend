@@ -3,10 +3,10 @@
   margin: 0 auto;
   padding: 61px 40px 0px 40px;
   font-family: "poppins", sans-serif;
-  //   background: #fafbfc;
   color: #333;
   line-height: 1.5;
-  height: 1092px;
+  height: auto;
+  min-height: 1092px;
 }
 
 .header {
@@ -88,8 +88,6 @@
   border-radius: 14px;
   font-family: inherit;
   font-size: 14px;
-  //   transition: border-color 0.2s ease;
-  //   background: #fafafa;
   color: #333;
 }
 
@@ -133,7 +131,6 @@
 }
 
 .contact-info h2 {
-  // margin-bottom: 30px;
   color: #1e1e1e;
   font-size: 23px;
   font-weight: 600;
@@ -202,12 +199,7 @@
 .map-placeholder {
   width: 100%;
   height: 100%;
-  //   background: linear-gradient(135deg, #e8e8e8 0%, #d8d8d8 100%);
-  //   display: flex;
   align-items: center;
-  //   justify-content: center;
-  //   color: #999;
-  font-size: 13px;
 }
 
 .map-placeholder img {
@@ -216,10 +208,9 @@
 }
 
 .get-direction-btn {
-  display: flex; /* use flexbox */
-  justify-content: space-between; /* pushes text to left, arrow to right */
-  align-items: center; /* vertically center */
-
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 10px 20px;
   background: #ff5835;
   color: white;
@@ -229,7 +220,7 @@
   font-weight: 500;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(255, 82, 82, 0.3);
-  width: 173px; /* keeps fixed width */
+  width: 173px;
 }
 
 .get-direction-btn:hover {
@@ -237,7 +228,7 @@
 }
 
 .get-direction-btn span {
-  font-size: 16px; /* optional: adjust arrow size */
+  font-size: 16px;
 }
 
 .success-message {
@@ -255,29 +246,6 @@
   display: block;
 }
 
-@media (max-width: 768px) {
-  .container {
-    padding: 40px 20px;
-  }
-
-  .content-grid {
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
-
-  .card {
-    padding: 30px 24px;
-  }
-
-  .header h1 {
-    font-size: 24px;
-  }
-
-  .header .highlight {
-    font-size: 28px;
-  }
-}
-
 .card.office-details {
   background: white;
   width: 450px;
@@ -286,4 +254,139 @@
   position: relative;
   bottom: 222px;
   right: 18px;
+}
+
+// Mobile Responsiveness
+@media (max-width: 768px) {
+  .container {
+    padding: 30px 16px;
+    min-height: auto;
+  }
+
+  .header {
+    margin-bottom: 40px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .header span {
+    font-size: 24px;
+  }
+
+  .header .highlight {
+    font-size: 24px;
+  }
+
+  .header p {
+    font-size: 14px;
+    padding: 0 10px;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .card {
+    padding: 24px 20px;
+    border-radius: 24px;
+  }
+
+  .card h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    font-size: 12px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+
+  .submit-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .contact-info h2 {
+    font-size: 20px;
+  }
+
+  .info-item {
+    font-size: 13px;
+  }
+
+  .info-icon img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .office-section h3 {
+    font-size: 20px;
+  }
+
+  .office-address {
+    font-size: 13px;
+  }
+
+  .map-placeholder {
+    position: relative;
+    height: auto;
+  }
+
+  .map-placeholder img {
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+  }
+
+  .card.office-details {
+    position: static;
+    width: 100%;
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .get-direction-btn {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 20px 12px;
+  }
+
+  .header h1,
+  .header span,
+  .header .highlight {
+    font-size: 20px;
+  }
+
+  .header p {
+    font-size: 13px;
+  }
+
+  .card {
+    padding: 20px 16px;
+  }
+
+  .card h2,
+  .contact-info h2,
+  .office-section h3 {
+    font-size: 18px;
+  }
 }

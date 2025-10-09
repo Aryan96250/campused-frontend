@@ -1,35 +1,28 @@
-import { Injectable } from '@angular/core';
-import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Route, UrlSegment } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, CanActivateFn } from '@angular/router';
+import { AuthService } from '../services/authService';
+export const authGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
 
-import { Observable } from 'rxjs';
-import { AuthenticationService } from './authentication.service';
-
-@Injectable({ providedIn: 'root' })
-export class AuthGuard implements CanActivate {
-  /**
-   *
-   * @param {Router} _router
-   * @param {AuthenticationService} _authenticationService
-   */
-  constructor(private _router: Router, private _authenticationService: AuthenticationService) {}
-
-  // canActivate
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
-    const currentUser = this._authenticationService.currentUserValue;
-
-    if (currentUser?.token) {
-      if (state.url === '/authentication') {
-        this._router.navigate(['/layout']);
-        return false;
-      }
-      return true; 
-    }
-
-    if (state.url !== '/authentication') {
-      this._router.navigate(['/authentication']);
-      return false;
-    }
-
-    return true; // Allow access to authentication page
+  if (authService.isAuthenticated()) {
+    return true;
   }
-}
+
+  // Store the attempted URL for redirecting after login
+  router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+  return false;
+};
+
+// Guard to prevent authenticated users from accessing login/register pages
+export const guestGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.isAuthenticated()) {
+    return true;
+  }
+
+  router.navigate(['/dashboard']);
+  return false;
+};

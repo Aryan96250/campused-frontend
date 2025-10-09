@@ -38,33 +38,39 @@
 
             "styles": [
               "src/styles.scss",
+                "node_modules/ngx-toastr/toastr.css",
                "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css"
             ],
             "scripts": []
           },
-          "configurations": {
-            "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
-                }
-              ],
-              "outputHashing": "all"
-            },
-            "development": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
-            }
-          },
+"configurations": {
+  "production": {
+    "budgets": [
+      { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
+      { "type": "anyComponentStyle", "maximumWarning": "4kB", "maximumError": "8kB" }
+    ],
+    "outputHashing": "all",
+    "fileReplacements": [
+      {
+        "replace": "src/environments/environment.ts",
+        "with": "src/environments/environment.ts"
+      }
+    ]
+  },
+  "development": {
+    "optimization": false,
+    "extractLicenses": false,
+    "sourceMap": true,
+    "fileReplacements": [
+      {
+        "replace": "src/environments/environment.ts",
+        "with": "src/environments/environment.development.ts"
+      }
+    ]
+  }
+},
+
           "defaultConfiguration": "production"
         },
         "serve": {
@@ -103,6 +109,7 @@
 
             "styles": [
               "src/styles.scss",
+                "node_modules/ngx-toastr/toastr.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css"
             ],

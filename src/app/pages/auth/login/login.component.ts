@@ -1,7 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ApiService } from '../../../helpers/services/apiService';
+import { ToastrService } from 'ngx-toastr';
+import { AuthService } from '../../../helpers/services/authService';
+import { GoogleAuthService } from '../../../helpers/services/googleService';
 
 @Component({
   selector: 'app-login',
@@ -10,12 +14,13 @@ import { RouterLink } from '@angular/router';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss','../../../../styles/shared-styles.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
    loginForm: FormGroup;
   showPassword = false;
   submitted = false;
+  loading =false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder,private apiService:ApiService,private toastr: ToastrService,private auth:AuthService,private google:GoogleAuthService) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
@@ -47,16 +52,35 @@ export class LoginComponent {
       });
       return;
     }
+     this.loading = true;
 
-    // Handle login logic here
-    console.log('Login successful', this.loginForm.value);
+    const payload = {
+      email:this.loginForm.value.email,
+      password:this.loginForm.value.password,
+      remember_me : this.loginForm.value.rememberMe
+    }
+    this.apiService.login(payload).subscribe({
+      next:(response:any)=>{
+       this.loading =false;
+        this.auth.setToken(response);
+       this.toastr.success(response.message, 'success');
+      },
+      error:(error:any)=>{
+       this.toastr.success(error.error || error.detail, 'success');
+       this.loading =false;
+      }
+    })
   }
   
   loginWithGoogle(): void {
-    console.log('Login with Google');
+    this.google.signIn()
   }
 
   loginWithApple(): void {
     console.log('Login with Apple');
+  }
+
+  ngOnDestroy(): void {
+    this.google.cancel()
   }
 }

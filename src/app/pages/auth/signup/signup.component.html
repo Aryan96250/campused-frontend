@@ -88,7 +88,7 @@
             <div style="display: flex; gap: 1rem; margin-bottom: -8px;">
               <div class="form-group" style="flex: 1;">
                 <div class="input-wrapper">
-                  <input
+                  <!-- <input
                    style="padding: 0.75rem 1rem 0.75rem 1rem !important;"
                     type="text"
                     id="gender"
@@ -102,8 +102,8 @@
                       !f['gender'].errors &&
                       f['gender'].value
                     "
-                  />
-                  <!-- <select
+                  /> -->
+                  <select
                     id="gender"
                     formControlName="gender"
                     [class.is-invalid]="
@@ -121,7 +121,7 @@
                     <option value="female">Female</option>
                     <option value="other">Other</option>
                     <option value="prefer-not-to-say">Prefer not to say</option>
-                  </select> -->
+                  </select>
                 </div>
                 <div
                   *ngIf="(submitted || f['gender'].touched) && f['gender'].errors"
@@ -388,7 +388,10 @@
             </div>
 
             <!-- Submit -->
-            <button type="submit" class="btn btn--primary">Start Studying Free</button>
+                <button type="submit" class="btn btn--primary" [disabled]="loading">
+              <span *ngIf="!loading">Start Studying Free</span>
+              <span *ngIf="loading" class="loader"></span>
+            </button>
 
             <!-- Footer -->
             <p class="auth__footer" style="margin-top: 1rem;">

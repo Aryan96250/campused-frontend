@@ -134,7 +134,10 @@
             </div>
 
             <!-- Submit -->
-            <button type="submit" class="btn btn--primary" >Login</button>
+              <button type="submit" class="btn btn--primary" [disabled]="loading">
+              <span *ngIf="!loading">Login</span>
+              <span *ngIf="loading" class="loader"></span>
+            </button>
             <!-- Footer -->
             <p class="auth__footer" style="margin-top: 8px">
               <span style="color: #a6a6a6">Don’t have an account?</span>
@@ -145,7 +148,7 @@
 
             <!-- Social Login -->
             <div class="social-login">
-              <button type="button" class="btn btn--social google" style="border-radius: 28px;">
+              <button type="button" class="btn btn--social google" (click)="loginWithGoogle()" style="border-radius: 28px;">
                 <img src="assets/images/google.png" alt="Google" /></button
               >&nbsp;&nbsp;&nbsp;
               <button type="button" class="btn btn--social apple" style="border-radius: 28px;">

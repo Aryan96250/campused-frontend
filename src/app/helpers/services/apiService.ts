@@ -16,8 +16,11 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/auth/signin`, payload);
   }
 
-   forgotPassword(payload: { email: string }): Observable<any> {
+   forgotPassword(payload:any): Observable<any> {
     return this.http.post(`${this.baseUrl}/auth/forgot-password`, payload);
+  }
+   resetPassword(payload:any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/auth/reset-password`, payload);
   }
 
     googleAuth(payload:any): Observable<any> {

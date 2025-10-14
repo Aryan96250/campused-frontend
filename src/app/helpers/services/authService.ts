@@ -1,6 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
 import { GoogleAuthService } from './googleService';
 
 interface AuthResponse {
@@ -18,10 +17,12 @@ export class AuthService {
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
   private tokenKey = 'access_token';
+  private injector: Injector;
 
-  constructor(private googleService:GoogleAuthService) {
-    // Initialize with token from localStorage if it exists
-    const token = localStorage.getItem(this.tokenKey);
+  constructor(injector: Injector) {
+    this.injector = injector;
+
+    const token = this.getTokenFromStorage();
     this.currentUserSubject = new BehaviorSubject<User | null>(
       token ? { token } : null
     );
@@ -33,18 +34,29 @@ export class AuthService {
   }
 
   public get token(): string | null {
-    return localStorage.getItem(this.tokenKey);
+    return this.getTokenFromStorage();
   }
 
-  setToken(response: AuthResponse): void {
+  private getTokenFromStorage(): string | null {
+    return localStorage.getItem(this.tokenKey) || sessionStorage.getItem(this.tokenKey);
+  }
+
+  setToken(response: AuthResponse, rememberMe: boolean = false): void {
     if (response.access_token) {
-      localStorage.setItem(this.tokenKey, response.access_token);
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem(this.tokenKey, response.access_token);
+
+      // Clear the other storage to avoid conflicts
+      if (rememberMe) sessionStorage.removeItem(this.tokenKey);
+      else localStorage.removeItem(this.tokenKey);
+
       this.currentUserSubject.next({ token: response.access_token });
     }
   }
 
   clearToken(): void {
     localStorage.removeItem(this.tokenKey);
+    sessionStorage.removeItem(this.tokenKey);
     this.currentUserSubject.next(null);
   }
 
@@ -53,7 +65,13 @@ export class AuthService {
   }
 
   logout(): void {
-    this.clearToken();
-    this.googleService.signOut()
+    try {
+      const googleService = this.injector.get(GoogleAuthService);
+      googleService.signOut();
+    } catch (error) {
+      console.error('Error signing out from Google during logout:', error);
+    } finally {
+      this.clearToken();
+    }
   }
 }

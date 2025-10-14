@@ -34,15 +34,18 @@ export class ForgotPasswordComponent {
       return;
     }
     this.loading = true;
-    this.api.forgotPassword( this.forgotPasswordForm.value.eamil ).subscribe( {
+    let body = {
+      email:  this.forgotPasswordForm.value.email
+    }
+    this.api.forgotPassword( body ).subscribe( {
       next: ( response: any ) => {
-        this.router.navigate( [ '/login' ] );
-        this.loading = false;
+        this.router.navigate( [ '/reset-password' ] );
         this.toastr.success( response.detail, 'success' )
+        this.loading = false;
       },
       error: ( error: any ) => {
         this.loading = false;
-        this.toastr.error( error.email, 'error' )
+        // this.toastr.error( error.email, 'error' )
       }
     } )
 

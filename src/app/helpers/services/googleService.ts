@@ -1,20 +1,27 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { ApiService } from './apiService';
 import { BehaviorSubject } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { AuthService } from './authService';
 
 declare const google: any;
 
 @Injectable({ providedIn: 'root' })
 export class GoogleAuthService {
-  private googleClientId = '214414241265-ldcgmnam676v2vvov2a2nd711bljifp2.apps.googleusercontent.com';
+  private googleClientId = environment.googleClientId;
   public isReady$ = new BehaviorSubject<boolean>(false);
+  private injector: Injector;
 
-  constructor(private apiService: ApiService, private toastr: ToastrService) {
+  constructor(
+    injector: Injector,
+    private apiService: ApiService,
+    private toastr: ToastrService
+  ) {
+    this.injector = injector;
     this.loadGoogleScript();
   }
 
-  /** Load Google Sign-In script dynamically */
   private loadGoogleScript(): void {
     if (document.getElementById('google-signin-script')) {
       this.initializeGoogleSignIn();
@@ -33,27 +40,31 @@ export class GoogleAuthService {
     document.head.appendChild(script);
   }
 
-  /** Initialize Google Sign-In */
   private initializeGoogleSignIn(): void {
-    setTimeout(() => {
-      if (!google?.accounts) {
-        this.toastr.error('Google accounts not available', 'Error');
-        return;
+    const checkGoogle = () => {
+      if (google?.accounts) {
+        this.doInitialize();
+      } else {
+        setTimeout(checkGoogle, 50);
       }
-
-      google.accounts.id.initialize({
-        client_id: this.googleClientId,
-        callback: (response: any) => this.handleGoogleResponse(response),
-        auto_select: false,
-        cancel_on_tap_outside: true
-      });
-
-      this.isReady$.next(true);
-      console.log('Google Sign-In initialized');
-    }, 100);
+    };
+    checkGoogle();
   }
 
-  /** Trigger Google Sign-In prompt */
+  private doInitialize(): void {
+    google.accounts.id.initialize({
+      client_id: this.googleClientId,
+      callback: (response: any) => this.handleGoogleResponse(response),
+      auto_select: false,
+      itp_support: true,
+      cancel_on_tap_outside: true,
+      use_fedcm_for_prompt: false 
+    });
+
+    this.isReady$.next(true);
+    console.log('Google Sign-In initialized with FedCM');
+  }
+
   public signIn(): void {
     if (!google?.accounts) {
       this.toastr.warning('Google Sign-In not ready. Please try again.', 'Info');
@@ -63,9 +74,12 @@ export class GoogleAuthService {
 
     try {
       google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          console.log('One Tap prompt dismissed or not displayed');
+        // FedCM-compatible: Only handle dismissal (unchanged)
+        if (notification.isDismissedMoment()) {
+          console.log('One Tap prompt dismissed by user');
+          // Optional: Show alternative sign-in options
         }
+        // Removed: isNotDisplayed(), isSkippedMoment() – deprecated with FedCM
       });
     } catch (error) {
       console.error('Error triggering Google Sign-In:', error);
@@ -73,7 +87,6 @@ export class GoogleAuthService {
     }
   }
 
-  /** Handle response from Google */
   private handleGoogleResponse(response: any): void {
     const credential = response?.credential;
     if (!credential) {
@@ -84,27 +97,29 @@ export class GoogleAuthService {
     this.apiService.googleAuth({ token: credential }).subscribe({
       next: (res: any) => {
         this.toastr.success('Logged in with Google successfully!', 'Success');
-        localStorage.setItem('token', res.token);
+        const authService = this.injector.get(AuthService);
+        authService.setToken(res); // Adjust if response has 'access_token'
       },
-      error: (err) => this.toastr.error(err.error?.message || 'Google login failed', 'Error')
+      error: (err) => {
+        console.error('Google auth API error:', err); // Log for CORS/network debugging
+        this.toastr.error(err.error?.message || 'Google login failed', 'Error');
+      }
     });
   }
 
-  /** Cancel Google One Tap */
   public cancel(): void {
     if (google?.accounts?.id) {
       google.accounts.id.cancel();
     }
   }
 
-  /** Sign out the user */
-public signOut(): void {
-  if (google?.accounts?.id) {
-    google.accounts.id.disableAutoSelect(); 
-    google.accounts.id.cancel();         
+  public signOut(): void {
+    if (google?.accounts?.id) {
+      google.accounts.id.disableAutoSelect();
+      google.accounts.id.cancel();
+    }
+    const authService = this.injector.get(AuthService);
+    authService.clearToken();
+    this.toastr.success('You have been signed out.', 'Success');
   }
-
-  this.toastr.success('You have been signed out.', 'Success');
-}
-
 }

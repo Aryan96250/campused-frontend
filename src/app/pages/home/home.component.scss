@@ -5,11 +5,12 @@ main {
      background: #0000000a;
     overflow-x: hidden;
 }
-.btn{display:inline-block;padding:.7rem 1.1rem;border-radius:12px;font-weight:700;text-decoration:none}
+.btn{display:inline-block;padding:.7rem 1.1rem;border-radius:12px;font-weight:300;text-decoration:none}
 .btn--primary{background:var(--orange);color:#fff;box-shadow:0 6px 16px rgba(255,111,61,.25)}
+.btn--normal{border: 1px solid;color:#000;box-shadow:0 6px 16px rgba(255,111,61,.25)}
 .btn--ghost{background:#f3f4f6;color:#111}
 .btn--dark{background:#111;color:#fff}
-.btn--lg{padding:1rem 1.4rem;border-radius:14px}
+.btn--lg{padding: 8px 64px 13px 64px;border-radius:11px}
 
 .hero__inner {
   display: grid;
@@ -17,7 +18,7 @@ main {
   gap: 32px;
   align-items: center;
 }
-.hero__text h1 {
+.hero__text h2 {
   font-family: "Quicksand", sans-serif;
   font-size: 77px;
   line-height: 1;
@@ -47,26 +48,36 @@ main {
   .hero__art {
     display: block;
   }
-  .hero__text h1 {
-    font-size: 77px;
+  .hero__text h2 {
+    font-size: 72px;
+    
   }
 }
 @media (max-width: 1200px) {
-  .hero__text h1 {
+  .hero__text h2 {
     font-size: 96px;
   }
 }
 @media (max-width: 900px) {
-  .hero__text h1 {
+  .hero__text h2 {
     font-size: 72px;
   }
 }
 @media (max-width: 600px) {
-  .hero__text h1 {
+  .hero__text h2 {
     font-size: 48px;
   }
 }
 
+.buttons {
+    display: flex;
+    gap: 24px;
+}
+
+span.summary {
+    color: #BD94F4;
+    font-weight: 700;
+}
 // INPUT BLOCK SECTION
 .input-block {
   background: var(--bg-light);
@@ -396,20 +407,19 @@ img.brand__logo {
   opacity: 1 !important;
 }
 
-.hero__text h1 span.accent,
-.hero__text h1 span.brand-name {
+.hero__text h2 span.accent,
+.hero__text h2 span.brand-name {
   font-weight: 700 !important;
+      line-height: normal;
 }
 
 .hero__text p {
-  font-family: "Quicksand", sans-serif;
-  font-weight: 300 !important;
-  font-style: Bold !important;
-  font-size: 32px !important;
-  color: #1e1e1e;
-  // leading-trim: NONE;
-  line-height: 100% !important;
-  letter-spacing: 0% !important;
+    font-family: "Quicksand", sans-serif;
+    font-weight: 400 !important;
+    font-style: Bold !important;
+    font-size: 30px !important;
+    color: #1e1e1e;
+    line-height: 37px;
 }
 
 .hero__text p strong {
@@ -438,11 +448,12 @@ img.main-image {
   opacity: 1;
 }
 img.check_img {
-    width: 819px;
+    width: 746px;
     position: absolute;
-    top: 289px;
-    right: 0px;
+    top: 138px;
+    right: 77px;
 }
+
 
 .hero{
     padding: 100px 0 236px 0 !important;
@@ -452,8 +463,7 @@ img.line_img {
     position: absolute;
     width: 1340px;
     left: 7px;
-       top: 227px;
-
+    top: 303px;
 }
 
 // last section result cards

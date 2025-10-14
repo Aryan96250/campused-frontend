@@ -96,14 +96,19 @@ export class SignupComponent implements OnDestroy{
         }
       },
       error: ( error: any ) => {
-        if ( error.status === 400 && error.error?.details ) {
-          const details = error.error.details;
-           this.loading=false
-          Object.keys( details ).forEach( field => {
-            details[ field ].forEach( ( msg: string ) => {
-              this.toastr.error( msg, 'Validation Error' );
-            } );
-          } );
+        console.log(error.status,error.error.error)
+        if ( error.status === 400) {
+          if(error.error.error){
+             this.toastr.error( error.error.error,  'success');
+          }else{
+            const details = error.error.details;
+            Object.keys( details ).forEach( field => {
+              details[ field ].forEach( ( msg: string ) => {
+                this.toastr.error( msg, 'warning' );
+              });
+            });
+          }
+          this.loading=false
         }
         else {
            this.loading=false

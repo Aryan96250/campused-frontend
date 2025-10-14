@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ChatService, Message } from '../../helpers/services/chat.service';
@@ -19,11 +19,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   selectedFiles: File[] = []; // Files previewed in input (before submit)
   isProcessing: boolean = false;
   isDragOver: boolean = false; // For drag-and-drop
+  showOptions: boolean = false; // New: For options dropdown toggle
   private destroy$ = new Subject<void>();
   private fileUrls: { [key: string]: string } = {}; // Track blob URLs for cleanup (local to component)
 
   // Feedback state (ChatGPT-like, per message)
   feedbackStates: { [key: string]: { isLiked: boolean; isDisliked: boolean } } = {};
+
+  @ViewChild('textInput') textInput!: ElementRef<HTMLInputElement>; // New: For auto-focus after processing
 
   constructor(private chatService: ChatService) {}
 
@@ -59,13 +62,24 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Submit text or files (moves previews to main chat)
+  // New: Close options dropdown on outside click
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.ask__options') && !target.closest('.options-dropdown')) {
+      this.showOptions = false;
+    }
+  }
+
+  // Submit text or files (moves previews to main chat) - Fixed for subsequent prompts
   onSubmitQuery(): void {
-    if ((this.userQuery.trim() || this.selectedFiles.length > 0) && !this.isProcessing) {
-      const query = this.userQuery.trim();
-      this.userQuery = '';
+    const query = this.userQuery.trim();
+    if ((query || this.selectedFiles.length > 0) && !this.isProcessing) {
+      // Process immediately: Add user message first (shows instantly)
       this.processQuery(query, [...this.selectedFiles]); // Copy files to avoid mutation
-      this.selectedFiles = []; // Clear input previews
+      // Clear input after adding message (prevents empty state)
+      this.userQuery = '';
+      this.selectedFiles = []; 
       this.fileUrls = {}; // Reset local URLs
     }
   }
@@ -122,9 +136,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     if ((event.target as HTMLElement).tagName === 'INPUT' && (event.target as HTMLInputElement).type === 'text') {
       return;
     }
-    const textInput = document.querySelector('.ask__input') as HTMLInputElement;
-    if (textInput) {
-      textInput.focus();
+    if (this.textInput) {
+      this.textInput.nativeElement.focus();
     }
   }
 
@@ -136,6 +149,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       const url = this.createPreviewUrl(file);
       if (url && url.startsWith('blob:')) {
         URL.revokeObjectURL(url);
+        // Remove from fileUrls if exists
+        delete this.fileUrls[file.name];
       }
     }
     this.selectedFiles.splice(index, 1);
@@ -168,10 +183,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Copy message text to clipboard (for feedback copy button)
+  // Copy message text to clipboard (for feedback copy button) - Fixed for AI messages
   copyMessageText(index: number): void {
     const message = this.messages[index];
-    if (!message || message.isUser  || !message.text) return;
+    if (!message || message.isUser  || !message.text) return; // Only for AI (!isUser )
 
     navigator.clipboard.writeText(message.text).then(() => {
       this.showToast('Copied to clipboard!');
@@ -180,7 +195,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       console.error('Copy failed:', err);
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
-      textArea.value = message.text  ??'';
+      textArea.value = message.text ?? '';
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand('copy');
@@ -189,10 +204,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Download AI response as text file (for feedback download button)
+  // Download AI response as text file (for feedback download button) - Fixed for AI messages
   downloadResponse(index: number): void {
     const message = this.messages[index];
-    if (!message || message.isUser  || !message.text) return;
+    if (!message || message.isUser  || !message.text) return; // Only for AI (!isUser )
 
     const blob = new Blob([message.text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -233,19 +248,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     // Show feedback toast
     this.showToast(isLike ? 'Thanks for the feedback!' : 'Thanks for the feedback!');
 
-    // Real API call (uncomment and adapt your service method)
-    /*
-    this.chatService.sendFeedback(messageId, isLike).subscribe({
-      next: () => {
-        console.log(`Feedback saved for message ${messageId}: ${isLike ? 'Like' : 'Dislike'}`);
-      },
-      error: (error) => {
-        console.error('Feedback API error:', error);
-        this.showToast('Feedback saved locally (API error)');
-      }
-    });
-    */
-
     // Mock (remove once real API is integrated)
     console.log(`Feedback sent for message ${messageId}: ${isLike ? 'Like' : 'Dislike'}`);
   }
@@ -259,8 +261,49 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.feedbackStates = {};
     this.fileUrls = {};
     this.isProcessing = false;
+    this.showOptions = false; // New: Close options
     this.showToast('Chat restarted!');
     this.scrollToBottom();
+    // Focus input after restart
+    setTimeout(() => {
+      if (this.textInput) {
+        this.textInput.nativeElement.focus();
+      }
+    }, 100);
+  }
+
+  // New: Toggle options dropdown
+  onShowOptions(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showOptions = !this.showOptions;
+  }
+
+  // New: Handle option selection
+  onOptionSelect(option: string): void {
+    this.showOptions = false;
+    switch (option) {
+      case 'clear':
+        this.onRestart();
+        this.showToast('Chat cleared!');
+        break;
+      case 'new':
+        // For now, same as clear; extend to navigate to new chat if needed
+        this.onRestart();
+        this.showToast('New chat started!');
+        break;
+      case 'settings':
+        this.showToast('Settings: Coming soon (e.g., model selection, theme)');
+        // Extend: Open settings modal or route
+        console.log('Open settings');
+        break;
+      case 'help':
+        this.showToast('Help: Ask me anything or check documentation');
+        // Extend: Open help page or modal
+        console.log('Open help');
+        break;
+      default:
+        break;
+    }
   }
 
   // Simple toast feedback (replace with MatSnackBar or similar for real UI)
@@ -271,12 +314,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     // this.snackBar.open(message, 'Close', { duration: 2000 });
   }
 
-  // Getter for liked feedback state (fixes NG8107 warning by moving logic to TS)
+  // Getter for liked feedback state (use in HTML if needed; original uses direct access)
   getFeedbackLiked(id: string): boolean {
     return (this.feedbackStates[id]?.isLiked ?? false) || (this.messages.find(m => m.id === id)?.feedback?.isLiked ?? false);
   }
 
-  // Getter for disliked feedback state (fixes NG8107 warning by moving logic to TS)
+  // Getter for disliked feedback state (use in HTML if needed)
   getFeedbackDisliked(id: string): boolean {
     return (this.feedbackStates[id]?.isDisliked ?? false) || (this.messages.find(m => m.id === id)?.feedback?.isDisliked ?? false);
   }
@@ -309,7 +352,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       text: query || undefined, // Optional if no text
       files: files.length > 0 ? files : undefined, // Array of files
       fileUrls: {}, // Will populate blob URLs
-      isUser :  true,
+      isUser:  true,
       timestamp: new Date(),
       isSent: true // Mark as sent
     };
@@ -322,26 +365,34 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
 
     this.chatService.addMessage(userMessage);
+    this.scrollToBottom(); // Scroll after user message
 
     // Add loading message for AI response
     const loadingMessageId = this.generateId();
     const loadingMessage: Message = {
       id: loadingMessageId,
       text: 'Thinking...',
-      isUser:  false,
+      isUser : false,
       timestamp: new Date(),
       isLoading: true
     };
     this.chatService.addMessage(loadingMessage);
     this.isProcessing = true;
+    this.scrollToBottom(); // Scroll after loading
 
     // Call API
     this.callAPI(query, loadingMessageId, files);
-    this.scrollToBottom();
   }
 
-  // API call (handles text + files)
+  // API call (handles text + files) - Fixed for subsequent prompts with focus reset
   private callAPI(query: string, loadingMessageId: string, files: File[] = []): void {
+    // Simple context for mock (previous user messages)
+    const conversationContext = this.messages
+      .filter(m => m.isUser  && m.text)
+      .map(m => m.text)
+      .slice(-2) // Last 2 for brevity
+      .join(' | ');
+
     if (files.length > 0) {
       // Files present: Use FormData for upload
       const formData = new FormData();
@@ -359,6 +410,7 @@ export class ChatComponent implements OnInit, OnDestroy {
               isLoading: false
             });
             this.isProcessing = false;
+            this.focusInput();
           },
           error: (error) => {
             this.chatService.updateMessage(loadingMessageId, {
@@ -366,7 +418,9 @@ export class ChatComponent implements OnInit, OnDestroy {
               isLoading: false
             });
             this.isProcessing = false;
+            this.focusInput();
             console.error('API Error:', error);
+            this.showToast('Upload error. Please try again.');
           }
         });
       */
@@ -379,6 +433,8 @@ export class ChatComponent implements OnInit, OnDestroy {
           isLoading: false
         });
         this.isProcessing = false;
+        this.focusInput();
+        this.scrollToBottom();
       }, 2000 + (files.length * 500)); // Delay based on files
       return;
     }
@@ -395,6 +451,7 @@ export class ChatComponent implements OnInit, OnDestroy {
             isLoading: false
           });
           this.isProcessing = false;
+          this.focusInput();
         },
         error: (error) => {
           this.chatService.updateMessage(loadingMessageId, {
@@ -402,19 +459,23 @@ export class ChatComponent implements OnInit, OnDestroy {
             isLoading: false
           });
           this.isProcessing = false;
+          this.focusInput();
           console.error('API Error:', error);
+          this.showToast('Request error. Please try again.');
         }
       });
     */
 
     // Mock
-    this.chatService.mockAPICall(query)
+    this.chatService.mockAPICall(query, [], conversationContext)
       .then(response => {
         this.chatService.updateMessage(loadingMessageId, {
           text: response,
           isLoading: false
         });
         this.isProcessing = false;
+        this.focusInput();
+        this.scrollToBottom();
       })
       .catch(error => {
         this.chatService.updateMessage(loadingMessageId, {
@@ -422,8 +483,20 @@ export class ChatComponent implements OnInit, OnDestroy {
           isLoading: false
         });
         this.isProcessing = false;
+        this.focusInput();
+        this.scrollToBottom();
         console.error('API Error:', error);
+        this.showToast('Request failed. Please try again.');
       });
+  }
+
+  // New: Focus input after processing (enables subsequent prompts)
+  private focusInput(): void {
+    setTimeout(() => {
+      if (this.textInput && !this.isProcessing) {
+        this.textInput.nativeElement.focus();
+      }
+    }, 200); // Small delay to ensure UI updates
   }
 
   private generateId(): string {
@@ -439,13 +512,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     }, 100);
   }
 
+  // Placeholder for expand (original log; + button is for files)
   onExpandInput(event: MouseEvent): void {
     event.stopPropagation();
-    console.log('Expand clicked'); // Implement expand (e.g., full-screen input)
+    console.log('Expand clicked'); // Implement expand (e.g, full-screen input)
   }
 
-  onShowOptions(event: MouseEvent): void {
-    event.stopPropagation();
-    console.log('Options clicked'); // Implement options menu
-  }
 }

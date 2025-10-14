@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators'; // For mock delays
+import { delay, catchError } from 'rxjs/operators'; // Added catchError for real API
 import { HttpClient } from '@angular/common/http';
 
 export interface Message {
@@ -8,7 +8,7 @@ export interface Message {
   text?: string;
   files?: File[]; // New: Multiple files
   fileUrls?: { [key: string]: string }; // New: Blob URLs per file
-  isUser:  boolean;
+  isUser : boolean; // Fixed: Removed extra colon/typo
   timestamp: Date;
   isLoading?: boolean;
   isSent?: boolean;
@@ -72,11 +72,10 @@ export class ChatService {
       query: message,
       // Add other required parameters (e.g., userId, sessionId, model: 'gpt-4')
     }).pipe(
-      // Optional: Handle errors globally if needed
-      // catchError(error => {
-      //   console.error('API Error:', error);
-      //   return of({ error: 'API request failed' });
-      // })
+      catchError(error => {
+        console.error('API Error:', error);
+        return of({ error: 'API request failed' });
+      })
     );
   }
 
@@ -87,11 +86,10 @@ export class ChatService {
       // Optional: Add headers if needed (e.g., auth token)
       // headers: { 'Authorization': 'Bearer your-token' }
     }).pipe(
-      // Optional: Handle errors
-      // catchError(error => {
-      //   console.error('File Upload Error:', error);
-      //   return of({ error: 'Upload failed' });
-      // })
+      catchError(error => {
+        console.error('File Upload Error:', error);
+        return of({ error: 'Upload failed' });
+      })
     );
   }
 
@@ -120,8 +118,8 @@ export class ChatService {
     );
   }
 
-  // Mock API call (for development/testing; supports text + optional files)
-  mockAPICall(message: string, files: File[] = []): Promise<string> {
+  // Mock API call (for development/testing; supports text + optional files) - Enhanced for subsequent prompts
+  mockAPICall(message: string, files: File[] = [], conversationContext?: string): Promise<string> {
     return new Promise((resolve, reject) => {
       // Simulate processing files
       if (files.length > 0) {
@@ -139,12 +137,16 @@ export class ChatService {
       }
 
       setTimeout(() => {
-        let response = `AI Response to: "${message || 'No text provided'}" (Mock response)`;
-        if (files.length > 0) {
-          response = `AI Response to: "${message || 'No text provided'}". Successfully processed ${files.length} file(s): ${files.map(f => f.name).join(', ')}. (Mock response with file analysis)`;
+        let response = `AI Response to: "${message || 'No text provided'}"`;
+        if (conversationContext) {
+          response += ` (Continuing conversation from previous messages)`;
         }
+        if (files.length > 0) {
+          response += `. Successfully processed ${files.length} file(s): ${files.map(f => f.name).join(', ')}`;
+        }
+        response += '. (Mock response)';
         resolve(response);
-      }, 1500 + (files.length * 500)); // Extra delay for files to simulate processing
+      }, 1500 + (files.length * 500)); // Extra delay for files
     });
   }
 }

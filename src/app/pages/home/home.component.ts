@@ -95,7 +95,7 @@ export class HomeComponent {
   onSubmitQuery(): void {
     if (this.userQuery.trim()) {
       // Store the query in the service
-      this.chatService.setInitialQuery(this.userQuery.trim());
+      // this.chatService.setInitialQuery(this.userQuery.trim());
       
       // Navigate to chat component
       this.router.navigate(['/chat']);

@@ -4,6 +4,7 @@ import { ApiService } from './apiService';
 import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './authService';
+import { Router } from '@angular/router';
 
 declare const google: any;
 
@@ -16,7 +17,8 @@ export class GoogleAuthService {
   constructor(
     injector: Injector,
     private apiService: ApiService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private router:Router
   ) {
     this.injector = injector;
     this.loadGoogleScript();
@@ -89,16 +91,23 @@ export class GoogleAuthService {
 
   private handleGoogleResponse(response: any): void {
     const credential = response?.credential;
+    console.log(response,'wewe')
     if (!credential) {
       this.toastr.warning('Google login was cancelled.', 'Info');
       return;
     }
-
-    this.apiService.googleAuth({ token: credential }).subscribe({
+ 
+    const body = {
+      id_token:credential
+    }
+    console.log(body,'kkkk')
+    this.apiService.googleAuth(body).subscribe({
       next: (res: any) => {
         this.toastr.success('Logged in with Google successfully!', 'Success');
         const authService = this.injector.get(AuthService);
+        localStorage.setItem('userName',res.name)
         authService.setToken(res); // Adjust if response has 'access_token'
+        this.router.navigate(['/dashboard'])
       },
       error: (err) => {
         console.error('Google auth API error:', err); // Log for CORS/network debugging

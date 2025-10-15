@@ -17,6 +17,7 @@ export class AuthService {
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
   private tokenKey = 'access_token';
+  private userName = 'user_name';
   private injector: Injector;
 
   constructor(injector: Injector) {

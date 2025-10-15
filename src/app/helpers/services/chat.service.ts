@@ -1,152 +1,277 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { delay, catchError } from 'rxjs/operators'; // Added catchError for real API
-import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, of, delay } from 'rxjs';
+import { ApiService } from './apiService';
 
 export interface Message {
   id: string;
   text?: string;
-  files?: File[]; // New: Multiple files
-  fileUrls?: { [key: string]: string }; // New: Blob URLs per file
-  isUser : boolean; // Fixed: Removed extra colon/typo
+  files?: File[];
+  fileUrls?: { [key: string]: string };
+  isUser: boolean;
   timestamp: Date;
   isLoading?: boolean;
   isSent?: boolean;
-  feedback?: { isLiked: boolean; isDisliked: boolean }; // New: For like/unlike
+  feedback?: { isLiked: boolean; isDisliked: boolean };
 }
 
-@Injectable({
-  providedIn: 'root'
-})
-export class ChatService {
-  private initialQuerySubject = new BehaviorSubject<string | null>(null);
-  public initialQuery$ = this.initialQuerySubject.asObservable();
+export interface Channel {
+  id: string;
+  title: string;
+  timestamp: Date;
+  messages: Message[];
+}
 
+@Injectable({ providedIn: 'root' })
+export class ChatService {
   private messagesSubject = new BehaviorSubject<Message[]>([]);
   public messages$ = this.messagesSubject.asObservable();
 
-  private apiUrl = 'YOUR_API_ENDPOINT'; // Replace with your text-only API endpoint (e.g., '/api/chat' or 'https://api.openai.com/v1/chat/completions')
-  private fileUploadUrl = 'YOUR_FILE_UPLOAD_ENDPOINT'; // Replace with your file upload endpoint (e.g., '/api/chat/upload')
-  private feedbackUrl = 'YOUR_FEEDBACK_ENDPOINT'; // Replace with your feedback API endpoint (e.g., '/api/feedback')
+  private channelsSubject = new BehaviorSubject<Channel[]>([]);
+  public channels$ = this.channelsSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  private activeChannelSubject = new BehaviorSubject<string | null>(null);
+  public activeChannel$ = this.activeChannelSubject.asObservable();
 
-  // Set initial query from home page or navigation
-  setInitialQuery(query: string): void {
-    this.initialQuerySubject.next(query);
+  private initialQuerySubject = new BehaviorSubject<string>('');
+  public initialQuery$ = this.initialQuerySubject.asObservable();
+
+  // Enhanced static channels with realistic data
+  private staticChannels: Channel[] = [
+    {
+      id: "409735b7-7fb8-496b-802d-c3b750edd4cf",
+      title: "Tech Skills Analysis",
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      messages: []
+    },
+    {
+      id: "ce12e4fc-720f-44ed-9b2b-630cfe5088da",
+      title: "Python Development Help",
+      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+      messages: []
+    },
+    {
+      id: "d4e39aaa-7445-4c28-8397-3032b7e9bf96",
+      title: "AI Assistant Setup",
+      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      messages: []
+    },
+    {
+      id: "48e8b3ff-02f1-4cb7-9735-fc674ef5ad81",
+      title: "Career Guidance",
+      timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
+      messages: []
+    }
+  ];
+
+  // Enhanced static conversations with realistic chat data
+  private staticConversations: { [key: string]: any[] } = {
+    "409735b7-7fb8-496b-802d-c3b750edd4cf": [
+      {
+        "role": "user",
+        "content": "Can you analyze my technical skills from my resume?"
+      },
+      {
+        "role": "assistant",
+        "content": "I'd be happy to analyze your technical skills! Please upload your resume or describe your technical background, and I'll provide a comprehensive analysis of your skills, strengths, and areas for improvement."
+      },
+      {
+        "role": "user", 
+        "content": "I have experience with Python, JavaScript, React, Node.js, and AWS"
+      },
+      {
+        "role": "assistant",
+        "content": "Great! Based on your skills, here's my analysis:\n\n**Technical Skills Breakdown:**\n\n🏆 **Strong Foundation:**\n• Full-stack development with Python & JavaScript\n• Frontend expertise in React\n• Backend proficiency with Node.js\n• Cloud platform experience with AWS\n\n🚀 **Recommended Focus Areas:**\n• Advanced React patterns (hooks, context, redux)\n• Serverless architecture with AWS Lambda\n• Database optimization and scaling\n• DevOps practices and CI/CD pipelines\n\n💡 **Next Steps:**\n1. Deepen your AWS certifications\n2. Explore containerization with Docker\n3. Learn about microservices architecture\n4. Practice system design concepts\n\nWould you like me to elaborate on any of these areas?"
+      }
+    ],
+    "ce12e4fc-720f-44ed-9b2b-630cfe5088da": [
+      {
+        "role": "user",
+        "content": "How can I improve my Python code performance?"
+      },
+      {
+        "role": "assistant", 
+        "content": "Here are some effective ways to improve Python code performance:\n\n**Immediate Improvements:**\n• Use list comprehensions instead of loops\n• Leverage built-in functions and libraries\n• Avoid global variables\n• Use local variables in functions\n\n**Advanced Optimizations:**\n• Implement caching with functools.lru_cache\n• Use generators for large datasets\n• Consider PyPy for CPU-bound tasks\n• Utilize NumPy for numerical computations\n\n**Memory Management:**\n• Use memory profiling tools\n• Implement lazy evaluation\n• Avoid unnecessary object creation\n\nWould you like specific examples for any of these techniques?"
+      }
+    ],
+    "d4e39aaa-7445-4c28-8397-3032b7e9bf96": [
+      {
+        "role": "user",
+        "content": "Help me set up an AI assistant for my application"
+      },
+      {
+        "role": "assistant",
+        "content": "I can help you set up an AI assistant! Here's a step-by-step approach:\n\n**Phase 1: Planning**\n• Define your assistant's purpose and scope\n• Identify target users and use cases\n• Choose between rule-based vs ML-based approach\n\n**Phase 2: Technology Stack**\n• Backend: Python/FastAPI or Node.js/Express\n• AI: OpenAI API, Hugging Face, or custom models\n• Database: PostgreSQL/MongoDB for conversations\n• Frontend: React/Angular/Vue for chat interface\n\n**Phase 3: Implementation**\n• Design conversation flows\n• Implement message handling\n• Add context management\n• Integrate with your existing systems\n\nWould you like me to elaborate on any specific phase?"
+      }
+    ]
+  };
+
+  // Default empty channel conversation
+  private defaultConversation = [
+    {
+      "role": "assistant",
+      "content": "Hello! I'm your AI assistant. I can help you with:\n\n• Technical questions and code review\n• Career guidance and skill development\n• Project planning and architecture\n• Resume analysis and interview preparation\n• Learning resources and best practices\n\nHow can I assist you today? Feel free to ask anything or upload files for analysis! 🚀"
+    }
+  ];
+
+  constructor(private api: ApiService) {
+    this.loadChannels();  // Load static channels on initialization
   }
 
-  // Clear initial query after processing
-  clearInitialQuery(): void {
-    this.initialQuerySubject.next(null);
+  loadChannels(): void {
+    // Simulate API delay with static data
+    setTimeout(() => {
+      this.channelsSubject.next(this.staticChannels);
+    }, 500);
   }
 
-  // Add a new message to the chat history
+  loadChannelMessages(channelId: string): void {
+    // Simulate API delay
+    setTimeout(() => {
+      let conversation = this.staticConversations[channelId] || this.defaultConversation;
+
+      const messages: Message[] = conversation.map((msg: any, index: number) => ({
+        id: `msg_${channelId}_${index}`,
+        text: msg.content,
+        isUser: msg.role === 'user',
+        timestamp: new Date(Date.now() - (conversation.length - index) * 60000), // Stagger timestamps
+        files: [],
+        isLoading: false,
+        isSent: true
+      }));
+
+      this.messagesSubject.next(messages);
+      this.activeChannelSubject.next(channelId);
+    }, 300);
+  }
+
+  sendMessage(channelId: string | null, query: string, files?: File[]): Observable<any> {
+    // Create user message
+    const userMessage: Message = {
+      id: this.generateId(),
+      text: query,
+      files: files || [],
+      isUser: true,
+      timestamp: new Date(),
+      isLoading: false,
+      isSent: true,
+    };
+
+    this.addMessage(userMessage);
+
+    // Create loading message
+    const loadingMsg: Message = {
+      id: this.generateId(),
+      isUser: false,
+      text: 'Thinking...',
+      timestamp: new Date(),
+      isLoading: true,
+    };
+    this.addMessage(loadingMsg);
+
+    // Simulate API response delay
+    return of(this.generateAIResponse(query, files)).pipe(delay(2000));
+  }
+
+  private generateAIResponse(query: string, files?: File[]): any {
+    const responses = [
+      "I understand your question about \"" + query + "\". Based on my analysis, here are my thoughts...",
+      
+      "That's an excellent question! " + query + " is an important topic. Here's what I recommend:\n\n" +
+      "• First, consider the core principles involved\n• Evaluate your current approach\n• Implement best practices for optimal results\n• Test and iterate for continuous improvement",
+      
+      "Great question! Regarding \"" + query + "\", here's a comprehensive approach:\n\n" +
+      "**Key Insights:**\n• Understanding the fundamentals is crucial\n• Practical implementation beats theoretical knowledge\n• Continuous learning is essential in tech\n\n**Next Steps:**\n1. Start with a proof of concept\n2. Gather feedback early\n3. Iterate based on results\n4. Scale your solution",
+      
+      "I've analyzed your query about \"" + query + "\". Here's my detailed response:\n\n" +
+      "Based on industry standards and best practices, the optimal approach involves:\n\n" +
+      "🏗️ **Architecture Considerations:**\n- Scalable design patterns\n- Maintainable code structure\n- Performance optimization\n\n" +
+      "🔧 **Technical Implementation:**\n- Clean, readable code\n- Proper error handling\n- Comprehensive testing\n\n" +
+      "Would you like me to dive deeper into any specific aspect?",
+      
+      "Thanks for your question! \"" + query + "\" is a topic I'm well-equipped to help with.\n\n" +
+      "**Immediate Actions:**\n• Review your current setup\n• Identify potential bottlenecks\n• Implement targeted improvements\n\n" +
+      "**Long-term Strategy:**\n• Continuous skill development\n• Staying updated with trends\n• Building a strong foundation\n\n" +
+      "Let me know if you need more specific guidance!"
+    ];
+
+    // If files are included, add file-specific response
+    let response = responses[Math.floor(Math.random() * responses.length)];
+    
+    if (files && files.length > 0) {
+      const fileNames = files.map(f => f.name).join(', ');
+      response = "I've received your files: " + fileNames + "\n\n" + response;
+    }
+
+    // Simulate API response structure
+    return {
+      data: {
+        response: response,
+        channelId:  this.generateChannelId(),
+        timestamp: new Date().toISOString()
+      },
+      success: true,
+      message: "Response generated successfully"
+    };
+  }
+
   addMessage(message: Message): void {
-    const currentMessages = this.messagesSubject.value;
-    this.messagesSubject.next([...currentMessages, message]);
+    const current = this.messagesSubject.value;
+    this.messagesSubject.next([...current, message]);
   }
 
-  // Update a specific message by ID (e.g., replace loading text with AI response or update feedback)
+  removeMessage(id: string): void {
+    const current = this.messagesSubject.value.filter((m) => m.id !== id);
+    this.messagesSubject.next(current);
+  }
+
   updateMessage(id: string, updates: Partial<Message>): void {
-    const currentMessages = this.messagesSubject.value;
-    const updatedMessages = currentMessages.map(msg =>
+    const current = this.messagesSubject.value.map((msg) =>
       msg.id === id ? { ...msg, ...updates } : msg
     );
-    this.messagesSubject.next(updatedMessages);
+    this.messagesSubject.next(current);
   }
 
-  // Update the entire messages array (e.g., after removing a file from a message)
-  updateMessages(messages: Message[]): void {
-    this.messagesSubject.next([...messages]);
-  }
-
-  // Clear all messages (for restart functionality)
   clearMessages(): void {
     this.messagesSubject.next([]);
   }
 
-  // Text-only API call (no files)
-  sendMessageToAPI(message: string): Observable<any> {
-    return this.http.post(this.apiUrl, { 
-      query: message,
-      // Add other required parameters (e.g., userId, sessionId, model: 'gpt-4')
-    }).pipe(
-      catchError(error => {
-        console.error('API Error:', error);
-        return of({ error: 'API request failed' });
-      })
-    );
+  setActiveChannel(channelId: string | null): void {
+    this.activeChannelSubject.next(channelId);
   }
 
-  // API call for text + files (uses FormData for multipart upload)
-  sendWithFiles(formData: FormData): Observable<any> {
-    return this.http.post(this.fileUploadUrl, formData, {
-      // HttpClient auto-sets Content-Type: multipart/form-data for FormData
-      // Optional: Add headers if needed (e.g., auth token)
-      // headers: { 'Authorization': 'Bearer your-token' }
-    }).pipe(
-      catchError(error => {
-        console.error('File Upload Error:', error);
-        return of({ error: 'Upload failed' });
-      })
-    );
+  getActiveChannelId(): string | null {
+    return this.activeChannelSubject.value;
   }
 
-  // NEW: Send feedback (like/unlike) for a message (ChatGPT-style)
-  sendFeedback(messageId: string, isLike: boolean): Observable<any> {
-    const feedbackType = isLike ? 'like' : 'dislike';
+  setInitialQuery(query: string): void {
+    this.initialQuerySubject.next(query);
+  }
+
+  clearInitialQuery(): void {
+    this.initialQuerySubject.next('');
+  }
+
+  // Create a new channel with static data
+  createNewChannel(title: string = "New Chat"): Channel {
+    const newChannel: Channel = {
+      id: this.generateChannelId(),
+      title: title,
+      timestamp: new Date(),
+      messages: []
+    };
+
+    // Add to static channels
+    this.staticChannels.unshift(newChannel);
+    this.channelsSubject.next([...this.staticChannels]);
     
-    // Real API call (uncomment and adapt)
-    /*
-    return this.http.post(this.feedbackUrl, {
-      messageId: messageId,
-      feedback: feedbackType,
-      // Add other params (e.g., userId, timestamp)
-    }).pipe(
-      catchError(error => {
-        console.error('Feedback API Error:', error);
-        return of({ success: false, message: 'Feedback saved locally' });
-      })
-    );
-    */
-
-    // Mock for testing (simulates API delay and success)
-    console.log(`Mock Feedback API: Sending ${feedbackType} for message ${messageId}`);
-    return of({ success: true, messageId, feedback: feedbackType }).pipe(
-      delay(300) // Simulate network delay
-    );
+    return newChannel;
   }
 
-  // Mock API call (for development/testing; supports text + optional files) - Enhanced for subsequent prompts
-  mockAPICall(message: string, files: File[] = [], conversationContext?: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      // Simulate processing files
-      if (files.length > 0) {
-        console.log('Mock API: Processing files:', files.map(f => ({
-          name: f.name,
-          size: f.size,
-          type: f.type
-        })));
-      }
+  private generateId(): string {
+    return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
 
-      // Simulate random error (5% chance for testing)
-      if (Math.random() < 0.05) {
-        setTimeout(() => reject(new Error('Mock API error: Network issue')), 1000);
-        return;
-      }
-
-      setTimeout(() => {
-        let response = `AI Response to: "${message || 'No text provided'}"`;
-        if (conversationContext) {
-          response += ` (Continuing conversation from previous messages)`;
-        }
-        if (files.length > 0) {
-          response += `. Successfully processed ${files.length} file(s): ${files.map(f => f.name).join(', ')}`;
-        }
-        response += '. (Mock response)';
-        resolve(response);
-      }, 1500 + (files.length * 500)); // Extra delay for files
-    });
+  private generateChannelId(): string {
+    return `channel_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 }

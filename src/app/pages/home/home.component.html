@@ -45,12 +45,37 @@
           [(ngModel)]="userQuery"
           (keyup.enter)="onSubmitQuery()"
         />
+         <div class="file-previews-container" *ngIf="selectedFiles.length > 0">
+        <p class="files-label">Selected files:</p>
+        <div class="files-list">
+          <div *ngFor="let file of selectedFiles; let i = index" class="file-preview">
+            <div *ngIf="file.type.startsWith('image/')" class="file-thumbnail">
+              <img [src]="getFilePreviewUrl(file)" [alt]="file.name" class="preview-img" />
+            </div>
+            <div *ngIf="!file.type.startsWith('image/')" class="file-icon-container">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                <polyline points="13 2 13 9 20 9"></polyline>
+              </svg>
+            </div>
+            <div class="file-info">
+              <p class="file-name">{{ file.name }}</p>
+              <p class="file-size">{{ (file.size / 1024).toFixed(2) }} KB</p>
+            </div>
+            <button type="button" class="remove-file" (click)="removeSelectedFile(i)" title="Remove">
+              ✕
+            </button>
+          </div>
+        </div>
+      </div>
         <div class="ask__controls">
           <div class="ask__controls-left">
             <button
               class="ask__expand"
               aria-label="Expand"
               (click)="onExpandInput()"
+               (click)="openFileDialog()"
+              title="Upload files"
             >
               +
             </button>
@@ -87,6 +112,18 @@
           </button>
         </div>
       </div>
+       <!-- File previews -->
+
+
+      <!-- Hidden file input -->
+      <input 
+        #filePicker
+        type="file" 
+        multiple 
+        hidden 
+        (change)="onFilesSelected($event)" 
+        accept="image/*,.pdf,.doc,.docx,.txt" 
+      />
 
       <div class="process">
         <div class="process__item">

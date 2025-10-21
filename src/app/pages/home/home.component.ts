@@ -1,10 +1,10 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { FooterComponent } from '../footer/footer.component';
 import { HeaderComponent } from '../header/header.component';
-import { ChatService } from '../../helpers/services/chat.service';
+import { ChatStateService } from '../../helpers/services/chat.service';
 
 @Component({
   selector: 'app-home',
@@ -14,24 +14,26 @@ import { ChatService } from '../../helpers/services/chat.service';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent {
+  @ViewChild('filePicker') filePicker!: ElementRef<HTMLInputElement>;
+  
   testimonials = [
    {
      rating:5,
-     text: `It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. `,
+     text: `It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.Â `,
      name: 'Aalia Ramachandran',
      course: 'UPSC Student',
      img: 'assets/images/girl-1.png'
    },
     {
       rating:4,
-      text: `It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. `,
+      text: `It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.Â `,
       name: 'Namrata Chatterjee',
       course: 'EET Student',
       img: 'assets/images/boy-2.png'
     },
     {
       rating: 5,
-      text: `It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. `,
+      text: `It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.Â `,
       name: 'Adah Shetty',
       course: 'IELTS Student',
       img: 'assets/images/girl-2.png'
@@ -45,9 +47,11 @@ export class HomeComponent {
     },
   ];
 
-
   currentIndex = 0;
-  cardsPerView = 1.2; // default for mobile
+  cardsPerView = 1.2;
+  userQuery: string = '';
+  selectedFiles: File[] = [];
+  filePreviewUrls: Map<string, string> = new Map();
 
   @HostListener('window:resize')
   onResize() {
@@ -80,40 +84,68 @@ export class HomeComponent {
   get translateX() {
     return `translateX(-${this.currentIndex * (100 / this.cardsPerView)}%)`;
   }
-  userQuery: string = '';
 
   constructor(
     private router: Router,
-    private chatService: ChatService
+    private chatStateService: ChatStateService
   ) {}
 
+  openFileDialog(): void {
+    this.filePicker.nativeElement.click();
+  }
+
+  onFilesSelected(evt: Event): void {
+    const input = evt.target as HTMLInputElement;
+    if (input.files?.length) {
+      this.selectedFiles = Array.from(input.files);
+      this.generateFilePreviewUrls();
+    }
+  }
+
+  generateFilePreviewUrls(): void {
+    this.selectedFiles.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.filePreviewUrls.set(file.name, e.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  getFilePreviewUrl(file: File): string {
+    return this.filePreviewUrls.get(file.name) || '';
+  }
+
+  removeSelectedFile(index: number): void {
+    const removedFile = this.selectedFiles[index];
+    if (this.filePreviewUrls.has(removedFile.name)) {
+      URL.revokeObjectURL(this.filePreviewUrls.get(removedFile.name)!);
+      this.filePreviewUrls.delete(removedFile.name);
+    }
+    this.selectedFiles.splice(index, 1);
+  }
+
   onStartFree(): void {
-    console.log('Start Free clicked');
+    this.chatStateService.setInitialData('', this.selectedFiles);
     this.router.navigate(['/chat']);
   }
 
   onSubmitQuery(): void {
-    if (this.userQuery.trim()) {
-      // Store the query in the service
-      // this.chatService.setInitialQuery(this.userQuery.trim());
-      
-      // Navigate to chat component
+    if (this.userQuery.trim() || this.selectedFiles.length > 0) {
+      this.chatStateService.setInitialData(this.userQuery.trim(), this.selectedFiles);
       this.router.navigate(['/chat']);
-      
-      // Clear the input
       this.userQuery = '';
+      this.selectedFiles = [];
     }
   }
 
   onExpandInput(): void {
-    // Logic to expand input or show additional options
     console.log('Expand clicked');
   }
 
   onShowOptions(): void {
-    // Logic to show options dropdown
     console.log('Options clicked');
   }
-
-
 }

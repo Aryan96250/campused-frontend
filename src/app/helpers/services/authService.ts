@@ -44,12 +44,11 @@ export class AuthService {
 
   setToken(response: AuthResponse, rememberMe: boolean = false): void {
     if (response.access_token) {
-      const storage = rememberMe ? localStorage : sessionStorage;
-      storage.setItem(this.tokenKey, response.access_token);
-
+      // const storage = rememberMe ? localStorage : sessionStorage;
+      localStorage.setItem(this.tokenKey, response.access_token);
       // Clear the other storage to avoid conflicts
-      if (rememberMe) sessionStorage.removeItem(this.tokenKey);
-      else localStorage.removeItem(this.tokenKey);
+      // if (rememberMe) sessionStorage.removeItem(this.tokenKey);
+      // else localStorage.removeItem(this.tokenKey);
 
       this.currentUserSubject.next({ token: response.access_token });
     }
@@ -67,6 +66,8 @@ export class AuthService {
 
   logout(): void {
     try {
+      localStorage.clear();
+      sessionStorage.clear();
       const googleService = this.injector.get(GoogleAuthService);
       googleService.signOut();
     } catch (error) {

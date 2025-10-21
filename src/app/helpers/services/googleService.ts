@@ -60,7 +60,7 @@ export class GoogleAuthService {
       auto_select: false,
       itp_support: true,
       cancel_on_tap_outside: true,
-      use_fedcm_for_prompt: false 
+      // use_fedcm_for_prompt: false 
     });
 
     this.isReady$.next(true);

@@ -1,174 +1,271 @@
-<app-header></app-header>
-<div class="chat-container">
-  <!-- Sidebar -->
-  <div class="sidebar" [class.sidebar--open]="sidebarOpen">
-    <div class="sidebar__header">
-      <h2 class="sidebar__title">Chat History</h2>
-      <button class="btn-new" (click)="createNewChat()" title="New Chat">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-      </button>
-    </div>
+<div class="page">
+  <app-header>
+    <!-- Mobile sidebar toggle -->
+  </app-header>
+  <button class="btn btn-link d-inline-flex d-md-none ms-2" type="button"
+          (click)="mobileSidebarOpen = !mobileSidebarOpen" aria-label="Toggle sidebar">
+    <svg *ngIf="!mobileSidebarOpen" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+    <svg *ngIf="mobileSidebarOpen" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
 
-    <div class="sidebar__channels">
-      <div 
-        *ngFor="let channel of channels" 
-        class="channel-item"
-        [class.channel-item--active]="activeChannelId === channel.id"
-        (click)="loadChannel(channel.id)"
-      >
-        <div class="channel-item__icon">💬</div>
-        <div class="channel-item__content">
-          <div class="channel-item__title">{{ channel.title || 'New Chat' }}</div>
-          <div class="channel-item__time">{{ formatTimestamp(channel.timestamp) }}</div>
-        </div>
-      </div>
+  <div class="chat-container">
+    <div class="container-fluid h-100">
+      <div class="row h-100 g-0">
 
-      <div *ngIf="channels.length === 0" class="sidebar__empty">
-        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💬</div>
-        <p style="font-size: 0.875rem;">No chat history yet</p>
-        <p style="font-size: 0.75rem; margin-top: 0.25rem;">Start a new conversation!</p>
-      </div>
-    </div>
-  </div>
+        <!-- Desktop sidebar (unchanged) -->
+        <div class="col-lg-3 col-md-4 sidebar-wrapper d-none d-md-flex">
+          <div class="sidebar">
+            <div class="sidebar-header">
+              <h5 class="mb-0">Conversations</h5>
+              <button class="btn-new-chat" (click)="createNewChat()" title="New Chat">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+            </div>
 
-  <!-- Sidebar Overlay -->
-  <div 
-    class="sidebar-overlay" 
-    [class.sidebar-overlay--active]="sidebarOpen && isMobile"
-    (click)="toggleSidebar()"
-  ></div>
+            <div class="sidebar-content">
+              <ng-container *ngIf="channels.length > 0; else noChannelsDesktop">
+                <div class="channel-list">
+                  <div *ngFor="let channel of channels"
+                       class="channel-item"
+                       [class.active]="activeChannelId === channel.id"
+                       (click)="loadChannel(channel.id)">
+                    <div class="channel-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                    </div>
+                    <span class="channel-title">{{ channel.title }}</span>
+                  </div>
+                </div>
+              </ng-container>
 
-  <!-- Main Content -->
-  <div class="main-content">
-    <!-- Header -->
-    <div class="header">
-      <button class="btn-menu" (click)="toggleSidebar()" title="Toggle Menu">
-        <svg *ngIf="!sidebarOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-        <svg *ngIf="sidebarOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-      <h1 class="header__title">AI Assistant</h1>
-    </div>
-
-    <!-- Messages Area -->
-    <div class="messages" #messagesContainer>
-      <div *ngIf="messages.length === 0 && !isProcessing" class="messages__empty">
-        <div class="empty-icon">🤖</div>
-        <p class="empty-text">How can I help you today?</p>
-        <p style="color: var(--text-light); font-size: 0.875rem; margin-top: 0.25rem;">
-          Ask me anything or upload files for analysis
-        </p>
-      </div>
-
-      <div *ngFor="let message of messages" class="message" 
-           [class.message--user]="message.isUser" 
-           [class.message--assistant]="!message.isUser">
-        
-        <div class="message__avatar">
-          <span *ngIf="message.isUser">👤</span>
-          <span *ngIf="!message.isUser">🤖</span>
-        </div>
-
-        <div class="message__content">
-          <!-- Text -->
-          <div class="message__bubble" *ngIf="message.text">
-            <span *ngIf="!message.isLoading">{{ message.text }}</span>
-            <div *ngIf="message.isLoading" class="typing-indicator">
-              <span></span><span></span><span></span>
+              <ng-template #noChannelsDesktop>
+                <div class="empty-state">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <p class="mt-3 mb-0">No conversations yet</p>
+                  <small class="text-muted">Start chatting to see history</small>
+                </div>
+              </ng-template>
             </div>
           </div>
+        </div>
 
-          <!-- Files -->
-          <div class="message__files" *ngIf="message.files && message.files.length > 0">
-            <div *ngFor="let file of message.files" class="file-item">
-              <img *ngIf="isImageFile(file)" [src]="message.fileUrls![file.name]" alt="Preview" class="file-item__img"/>
-              <div *ngIf="!isImageFile(file)" class="file-item__icon">📎</div>
-              <div class="file-item__info">
-                <div class="file-item__name">{{ file.name }}</div>
-                <div class="file-item__size">{{ formatFileSize(file.size) }}</div>
+        <!-- Mobile sidebar overlay -->
+        <div class="sidebar-wrapper d-block d-md-none"
+             [class.show]="mobileSidebarOpen">
+          <div class="sidebar">
+            <div class="sidebar-header">
+              <h5 class="mb-0">Conversations</h5>
+              <div class="sidebar-header-actions">
+                <button class="btn-new-chat" (click)="createNewChat()" title="New Chat">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+                <button class="btn-close-sidebar" aria-label="Close sidebar"
+                        (click)="mobileSidebarOpen = false">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
               </div>
             </div>
-          </div>
 
-          <!-- Feedback buttons -->
-          <div *ngIf="!message.isUser && !message.isLoading" class="message__actions">
-            <button class="action-btn" (click)="copyMessage(message)" title="Copy">
-              📋
-            </button>
-            <button class="action-btn" 
-                    [class.action-btn--active]="getFeedbackLiked(message.id)" 
-                    (click)="toggleFeedback(message.id, true)" 
-                    title="Like">
-              👍
-            </button>
-            <button class="action-btn" 
-                    [class.action-btn--active]="getFeedbackDisliked(message.id)" 
-                    (click)="toggleFeedback(message.id, false)" 
-                    title="Dislike">
-              👎
-            </button>
+            <div class="sidebar-content">
+              <ng-container *ngIf="channels.length > 0; else noChannelsMobile">
+                <div class="channel-list">
+                  <div *ngFor="let channel of channels"
+                       class="channel-item"
+                       [class.active]="activeChannelId === channel.id"
+                       (click)="loadChannel(channel.id); mobileSidebarOpen = false">
+                    <div class="channel-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                    </div>
+                    <span class="channel-title">{{ channel.title }}</span>
+                  </div>
+                </div>
+              </ng-container>
+
+              <ng-template #noChannelsMobile>
+                <div class="empty-state">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <p class="mt-3 mb-0">No conversations yet</p>
+                  <small class="text-muted">Start chatting to see history</small>
+                </div>
+              </ng-template>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Input Area -->
-    <div class="input-area" 
-         (drop)="onDrop($event)" 
-         (dragover)="onDragOver($event)" 
-         (dragleave)="onDragLeave($event)"
-         [class.drag-over]="isDragOver">
+        <!-- Backdrop for mobile sidebar -->
+        <div class="sidebar-backdrop d-md-none"
+             [class.show]="mobileSidebarOpen"
+             (click)="mobileSidebarOpen = false"></div>
 
-      <!-- File Previews -->
-      <div *ngIf="selectedFiles.length > 0" class="file-previews">
-        <div *ngFor="let file of selectedFiles; let i = index" class="file-preview">
-          <img *ngIf="isImageFile(file)" [src]="createPreviewUrl(file)" alt="Preview" class="file-preview__img"/>
-          <div *ngIf="!isImageFile(file)" class="file-preview__icon">📎</div>
-          <div class="file-preview__info">
-            <div class="file-preview__name">{{ file.name }}</div>
-            <div class="file-preview__size">{{ formatFileSize(file.size) }}</div>
+        <!-- Main Chat Area -->
+        <div class="col-lg-9 col-md-8 col-12 chat-main">
+          <div class="chat-wrapper">
+            <div class="loading-bar" *ngIf="isProcessing"></div>
+
+            <div #messagesContainer class="messages-container">
+              <ng-container *ngIf="messages.length; else noMessages">
+                <div *ngFor="let msg of messages; let i = index"
+                     class="message-wrapper"
+                     [class.message-user]="msg.isUser"
+                     [class.message-assistant]="!msg.isUser">
+                  <div class="message-bubble">
+                    <ng-container *ngIf="msg.text === 'typing'; else messageContent">
+                      <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                      </div>
+                    </ng-container>
+
+                    <ng-template #messageContent>
+                      <div class="message-text">{{ msg.text }}</div>
+                      <div class="message-time">{{ formatTimestamp(msg.timestamp) }}</div>
+
+                      <div class="message-actions" *ngIf="!msg.isUser">
+                        <button class="action-btn" title="Copy" (click)="copyMessage(msg.text)">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                          </svg>
+                        </button>
+                        <button class="action-btn" title="Download" (click)="downloadMessage(msg.text, i)">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                          </svg>
+                        </button>
+                        <button class="action-btn" title="Like" (click)="rateMessage(i, 'like')">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                          </svg>
+                        </button>
+                        <button class="action-btn" title="Dislike" (click)="rateMessage(i, 'dislike')">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+                          </svg>
+                        </button>
+                        <button class="action-btn" title="Regenerate" (click)="onSubmitQuery()">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </ng-template>
+                  </div>
+                </div>
+              </ng-container>
+
+              <ng-template #noMessages>
+                <div class="empty-chat-state">
+                  <div class="empty-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                      <line x1="9" y1="9" x2="15" y2="9"></line>
+                      <line x1="9" y1="13" x2="15" y2="13"></line>
+                    </svg>
+                  </div>
+                  <h4 class="mt-4">How can I help you today?</h4>
+                  <p class="text-muted">Start a conversation or upload files for analysis</p>
+                </div>
+              </ng-template>
+            </div>
+
+            <div class="input-area">
+              <div class="file-previews" *ngIf="filePreviews.length > 0">
+                <div *ngFor="let preview of filePreviews; let i = index" class="file-preview-item">
+                  <button class="remove-preview" (click)="removeFilePreview(i)" title="Remove">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+
+                  <div class="preview-content" *ngIf="preview.isImage && preview.previewUrl">
+                    <img [src]="preview.previewUrl" [alt]="preview.file.name" />
+                  </div>
+
+                  <div class="preview-content file-icon" *ngIf="!preview.isImage">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                      <polyline points="13 2 13 9 20 9"></polyline>
+                    </svg>
+                  </div>
+
+                  <div class="file-name">{{ preview.file.name }}</div>
+                </div>
+              </div>
+
+              <form class="input-form" (ngSubmit)="onSubmitQuery()">
+                <div class="input-wrapper">
+                  <button type="button" class="attach-btn" (click)="openFileDialog()" [disabled]="isProcessing" title="Attach files">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                    </svg>
+                  </button>
+
+                  <textarea [(ngModel)]="userQuery" name="userQuery" class="message-input"
+                            placeholder="Type your message..." rows="1"
+                            [disabled]="isProcessing" (keydown)="handleEnter($event)"></textarea>
+
+                  <button type="submit" class="send-btn"
+                          [disabled]="isProcessing || (!userQuery.trim() && pendingFiles.length === 0)"
+                          title="Send message">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!isProcessing">
+                      <line x1="22" y1="2" x2="11" y2="13"></line>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                    <div class="spinner-border spinner-border-sm" role="status" *ngIf="isProcessing">
+                      <span class="visually-hidden">Sending...</span>
+                    </div>
+                  </button>
+
+                  <input #filePicker type="file" multiple hidden (change)="onFilesSelected($event)" />
+                </div>
+              </form>
+            </div>
+
           </div>
-          <button class="file-preview__remove" (click)="removeSelectedFile(i)" title="Remove file">×</button>
         </div>
-      </div>
 
-      <!-- Input Box -->
-      <div class="input-box">
-        <input type="file" #fileInput multiple (change)="onFileSelected($event)" hidden accept="*/*">
-        
-        <button class="btn-attach" 
-                (click)="fileInput.click()" 
-                [disabled]="isProcessing"
-                title="Attach files">
-          📎
-        </button>
-
-        <input type="text" 
-               class="input-box__field" 
-               placeholder="Type your message..." 
-               [(ngModel)]="userQuery"
-               (keydown)="handleKeyPress($event)"
-               [disabled]="isProcessing"
-               #textInput>
-
-        <button class="btn-send" 
-                (click)="onSubmitQuery()" 
-                [disabled]="(!userQuery.trim() && selectedFiles.length === 0) || isProcessing"
-                title="Send message">
-          {{ isProcessing ? '⏳' : '➤' }}
-        </button>
       </div>
     </div>
   </div>
-</div>
 
-<app-footer></app-footer>
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div class="toast"
+         [class.show]="toastMsg"
+         [class.bg-success]="toastMsg?.type === 'success'"
+         [class.bg-danger]="toastMsg?.type === 'error'"
+         [class.bg-info]="toastMsg?.type === 'info'"
+         role="alert">
+      <div class="toast-body text-white">
+        {{ toastMsg?.text }}
+      </div>
+    </div>
+  </div>
+
+  <app-footer></app-footer>
+</div>

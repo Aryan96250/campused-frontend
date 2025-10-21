@@ -76,8 +76,9 @@ export class LoginComponent implements OnDestroy {
         this.loading = false;
         // const rememberMe = this.loginForm.value.rememberMe;
         this.auth.setToken(response); // Pass rememberMe flag to AuthService
+        localStorage.setItem('userName',response.name)
         this.toastr.success(response.message || 'Login successful', 'Success');
-        this.router.navigate(['/dashboard']); // Or wherever you want to go
+        this.router.navigate(['/dashboard']);
       },
       error: (error: any) => {
         this.loading = false;

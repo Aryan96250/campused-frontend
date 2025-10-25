@@ -78,7 +78,7 @@ export class LoginComponent implements OnDestroy {
         this.auth.setToken(response); // Pass rememberMe flag to AuthService
         localStorage.setItem('userName',response.name)
         this.toastr.success(response.message || 'Login successful', 'Success');
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/chat']);
       },
       error: (error: any) => {
         this.loading = false;
@@ -101,6 +101,10 @@ export class LoginComponent implements OnDestroy {
   //   this.router.navigate(['/login']);
   // }
 
+  nevigate(){
+    this.router.navigate([''])
+  }
+  
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

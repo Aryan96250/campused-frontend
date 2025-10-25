@@ -157,7 +157,9 @@
       flex: 1;
       padding: 0.7rem;
       background: #fff;
-      border: 1.5px solid #e5e7eb;
+      // border: 1.5px solid #e5e7eb;
+      width:100%;
+      margin-top: 20px;
 
       &:hover {
         background: #f9fafb;

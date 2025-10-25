@@ -8,7 +8,7 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
 @Component({
   selector: 'app-exams',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent],
   templateUrl: './exams.component.html',
   styleUrls: ['./exams.component.scss'],
   animations: [

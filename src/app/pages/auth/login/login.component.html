@@ -4,7 +4,7 @@
       <!-- LEFT SIDE: Login Form -->
       <div class="col-lg-5">
         <div class="auth__form-wrapper">
-          <div class="auth__logo">
+          <div class="auth__logo" style="cursor: pointer;" (click)="nevigate()">
             <img src="assets/images/Logo.png" alt="Campused.ai" />
           </div>
 
@@ -138,6 +138,15 @@
               <span *ngIf="!loading">Login</span>
               <span *ngIf="loading" class="loader"></span>
             </button>
+                  <!-- Social Login -->
+            <div class="social-login">
+              <button type="button" class="btn btn--social google" (click)="loginWithGoogle()">
+                <img src="assets/images/google.png" alt="Google" />&nbsp;&nbsp;Continue with Google</button
+              >&nbsp;&nbsp;&nbsp;
+              <!-- <button type="button" class="btn btn--social apple" style="border-radius: 28px;">
+                <img src="assets/images/apple.png" alt="Apple" />
+              </button> -->
+            </div>
             <!-- Footer -->
             <p class="auth__footer" style="margin-top: 8px">
               <span style="color: #a6a6a6">Don’t have an account?</span>
@@ -146,15 +155,7 @@
               <a [routerLink]="'/forgot'">Forgot Password?</a>
             </p>
 
-            <!-- Social Login -->
-            <div class="social-login">
-              <button type="button" class="btn btn--social google" (click)="loginWithGoogle()" style="border-radius: 28px;">
-                <img src="assets/images/google.png" alt="Google" /></button
-              >&nbsp;&nbsp;&nbsp;
-              <button type="button" class="btn btn--social apple" style="border-radius: 28px;">
-                <img src="assets/images/apple.png" alt="Apple" />
-              </button>
-            </div>
+      
           </form>
         </div>
       </div>

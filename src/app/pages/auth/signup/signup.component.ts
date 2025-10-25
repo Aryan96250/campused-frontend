@@ -130,6 +130,9 @@ export class SignupComponent implements OnDestroy{
     console.log( 'Register with Apple' );
   }
 
+    nevigate(){
+    this.router.navigate([''])
+  }
   ngOnDestroy(): void {
     this.google.cancel();
   }

@@ -13,6 +13,14 @@ interface ChatMsg {
   text: string;
   isUser: boolean;
   timestamp: number;
+  files?: MessageFile[];
+  liked?: boolean | null;
+}
+
+interface MessageFile {
+  name: string;
+  url: string;
+  type: string;
 }
 
 interface FilePreview {
@@ -25,7 +33,7 @@ interface FilePreview {
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
-  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent],
   standalone: true,
 })
 export class ChatComponent implements OnInit, OnDestroy {
@@ -42,6 +50,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private toastTimer: any = null;
   private destroy$ = new Subject<void>();
   private hasInitialData = false;
+  submitTure = true
 
   @ViewChild('filePicker') filePicker!: ElementRef<HTMLInputElement>;
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
@@ -66,7 +75,6 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.pendingFiles = data.files;
           this.generateFilePreviews();
           
-          // Auto-submit the initial message after a short delay
           queueMicrotask(() => {
             this.onSubmitQuery();
             this.chatStateService.clearInitialData();
@@ -79,25 +87,73 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.api.listChannels().subscribe((list: any) => {
       this.channels = list ?? [];
       
-      // Only auto-load a channel if we don't have initial data to send
       if (!this.hasInitialData && !this.activeChannelId && this.channels.length) {
         this.loadChannel(this.channels[0].id);
       }
     });
   }
 
-  loadChannel(id: string) {
-    this.activeChannelId = id;
-    this.api.getChannel(id).subscribe((payload: any) => {
-      const conv = payload?.conversation ?? [];
-      this.messages = conv.map((m: any) => ({
+ loadChannel(id: string) {
+  this.activeChannelId = id;
+  this.api.getChannel(id).subscribe((payload: any) => {
+    const conv = payload?.conversation ?? [];
+    this.messages = conv
+      .filter((m: any) => m?.role !== 'system') // Exclude system messages
+      .map((m: any) => ({
         text: m?.content ?? m?.text ?? '',
         isUser: m?.role === 'user',
         timestamp: Date.now(),
+        files: this.parseMessageFiles(m),
+        liked: m?.liked ?? null
       }));
-      queueMicrotask(() => this.scrollToBottom());
-    });
-    this.mobileSidebarOpen = false;
+    queueMicrotask(() => this.scrollToBottom());
+  });
+  this.mobileSidebarOpen = false;
+}
+
+  private parseMessageFiles(message: any): MessageFile[] {
+    const files: MessageFile[] = [];
+    
+    if (message?.files && Array.isArray(message.files)) {
+      message.files.forEach((file: any) => {
+        if (typeof file === 'string') {
+          files.push({
+            name: this.getFileNameFromUrl(file),
+            url: file,
+            type: this.getFileTypeFromUrl(file)
+          });
+        } else if (file?.url) {
+          files.push({
+            name: file.name || this.getFileNameFromUrl(file.url),
+            url: file.url,
+            type: file.type || this.getFileTypeFromUrl(file.url)
+          });
+        }
+      });
+    }
+    
+    return files;
+  }
+
+  private getFileNameFromUrl(url: string): string {
+    return url.split('/').pop() || 'file';
+  }
+
+  private getFileTypeFromUrl(url: string): string {
+    const ext = url.split('.').pop()?.toLowerCase() || '';
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return 'image';
+    if (['pdf'].includes(ext)) return 'pdf';
+    if (['doc', 'docx'].includes(ext)) return 'document';
+    if (['xls', 'xlsx'].includes(ext)) return 'spreadsheet';
+    return 'file';
+  }
+
+  getFileIcon(type: string): string {
+    switch(type) {
+      case 'pdf': return 'M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z';
+      case 'document': return 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z';
+      default: return 'M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z';
+    }
   }
 
   createNewChat() {
@@ -168,89 +224,133 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.filePreviews = [];
   }
 
-  onSubmitQuery() {
-    const q = (this.userQuery ?? '').trim();
-    if (!q && this.pendingFiles.length === 0) return;
+onSubmitQuery() {
+  const q = (this.userQuery ?? '').trim();
+  if (!q && this.pendingFiles.length === 0) return;
 
-    if (q) this.messages.push({ text: q, isUser: true, timestamp: Date.now() });
+  // Store files for the user message
+  const userFiles: MessageFile[] = this.pendingFiles.map(file => ({
+    name: file.name,
+    url: URL.createObjectURL(file),
+    type: file.type.startsWith('image/') ? 'image' : 
+          file.type === 'application/pdf' ? 'pdf' :
+          file.name.endsWith('.doc') || file.name.endsWith('.docx') ? 'document' :
+          file.name.endsWith('.xls') || file.name.endsWith('.xlsx') ? 'spreadsheet' : 'file'
+  }));
 
-    this.assistantTypingIndex = this.messages.push({
-      text: 'typing',
-      isUser: false,
+  // Add user message with files
+  if (q || userFiles.length > 0) {
+    this.messages.push({ 
+      text: q || '(File upload)', 
+      isUser: true, 
       timestamp: Date.now(),
-    }) - 1;
-
-    this.isProcessing = true;
-    const files = this.pendingFiles.slice();
-
-    const send$ = this.activeChannelId
-      ? this.api.sendMessageMultipart(this.activeChannelId, q, files)
-      : this.api.sendFirstMessage(q, files);
-    if(this.activeChannelId){
-      this.refreshChannels();
-    }
-    send$
-      .pipe(
-        finalize(() => {
-          this.isProcessing = false;
-          this.pendingFiles = [];
-          this.clearFilePreviews();
-          this.userQuery = '';
-          this.scrollToBottom();
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe((res: any) => {
-        if (!this.activeChannelId && res?.channel_id) {
-          this.activeChannelId = res.channel_id;
-          this.channels.unshift({ id: res.channel_id, title: res?.title || 'new chat' });
-        }
-
-        const texts: string[] = [];
-        if (Array.isArray(res?.messages)) {
-          for (const m of res.messages) {
-            const t = m?.content ?? m?.text ?? m?.message ?? '';
-            if (t) texts.push(t);
-          }
-        } else if (res?.message || res?.content || res?.text) {
-          texts.push(res.message ?? res.content ?? res.text);
-        } else if (res?.data?.content || res?.data?.text) {
-          texts.push(res.data.content ?? res.data.text);
-        } else if (Array.isArray(res?.conversation)) {
-          this.messages = res.conversation.map((m: any) => ({
-            text: m?.content ?? m?.text ?? '',
-            isUser: m?.role === 'user',
-            timestamp: Date.now(),
-          }));
-          this.assistantTypingIndex = null;
-          queueMicrotask(() => this.scrollToBottom());
-          return;
-        }
-
-        if (this.assistantTypingIndex != null && texts.length) {
-          this.messages[this.assistantTypingIndex] = {
-            text: texts.shift()!,
-            isUser: false,
-            timestamp: Date.now(),
-          };
-          this.assistantTypingIndex = null;
-        } else if (this.assistantTypingIndex != null) {
-          this.messages.splice(this.assistantTypingIndex, 1);
-          this.assistantTypingIndex = null;
-        }
-
-        for (const t of texts) {
-          this.messages.push({ text: t, isUser: false, timestamp: Date.now() });
-        }
-
-        queueMicrotask(() => this.scrollToBottom());
-      }, _err => {
-        if (this.assistantTypingIndex != null) {
-          this.messages.splice(this.assistantTypingIndex, 1);
-          this.assistantTypingIndex = null;
-        }
-      });
+      files: userFiles.length > 0 ? userFiles : undefined
+    });
   }
+
+  // Add typing indicator
+  this.assistantTypingIndex = this.messages.push({
+    text: 'typing',
+    isUser: false,
+    timestamp: Date.now(),
+  }) - 1;
+
+  // Scroll after adding messages
+  queueMicrotask(() => this.scrollToBottom());
+
+  this.isProcessing = true;
+  const files = this.pendingFiles.slice();
+
+  // Clear input and files immediately
+  const queryToSend = q;
+  this.userQuery = '';
+  this.pendingFiles = [];
+  this.clearFilePreviews();
+
+  const send$ = this.activeChannelId
+    ? this.api.sendMessageMultipart(this.activeChannelId, queryToSend, files)
+    : this.api.sendFirstMessage(queryToSend, files);
+  
+  if(this.activeChannelId){
+    this.refreshChannels();
+  }
+  
+  send$
+    .pipe(
+      finalize(() => {
+        this.isProcessing = false;
+        // Final scroll after everything is done
+        setTimeout(() => this.scrollToBottom(), 100);
+      }),
+      takeUntil(this.destroy$)
+    )
+    .subscribe((res: any) => {
+      if (!this.activeChannelId && res?.channel_id) {
+        this.activeChannelId = res.channel_id;
+        this.channels.unshift({ id: res.channel_id, title: res?.title || 'new chat' });
+      }
+
+      const texts: string[] = [];
+      const responseFiles: MessageFile[] = [];
+      
+      if (Array.isArray(res?.messages)) {
+        for (const m of res.messages) {
+          const t = m?.content ?? m?.text ?? m?.message ?? '';
+          if (t) texts.push(t);
+          if (m?.files) responseFiles.push(...this.parseMessageFiles(m));
+        }
+      } else if (res?.message || res?.content || res?.text) {
+        texts.push(res.message ?? res.content ?? res.text);
+        if (res?.files) responseFiles.push(...this.parseMessageFiles(res));
+      } else if (res?.data?.content || res?.data?.text || res.data) {
+        texts.push(res.data.content ?? res.data.text);
+        if (res?.data?.files) responseFiles.push(...this.parseMessageFiles(res.data));
+      } else if (Array.isArray(res?.conversation)) {
+        this.messages = res.conversation.filter((m: any) => m?.role !== 'system').map((m: any) => ({
+          text: m.role === "system" ? '' : m?.content ?? m?.text ?? '',
+          isUser: m?.role === 'user',
+          timestamp: Date.now(),
+          files: this.parseMessageFiles(m),
+          liked: m?.liked ?? null
+        }));
+        this.assistantTypingIndex = null;
+        queueMicrotask(() => this.scrollToBottom());
+        return;
+      }
+
+      if (this.assistantTypingIndex != null && texts.length) {
+        this.messages[this.assistantTypingIndex] = {
+          text: texts.shift()!,
+          isUser: false,
+          timestamp: Date.now(),
+          files: responseFiles.length > 0 ? responseFiles : undefined,
+          liked: null
+        };
+        this.assistantTypingIndex = null;
+      } else if (this.assistantTypingIndex != null) {
+        this.messages.splice(this.assistantTypingIndex, 1);
+        this.assistantTypingIndex = null;
+      }
+
+      for (const t of texts) {
+        this.messages.push({ 
+          text: t, 
+          isUser: false, 
+          timestamp: Date.now(),
+          files: responseFiles.length > 0 ? responseFiles : undefined,
+          liked: null
+        });
+      }
+
+      // Scroll after adding response
+      queueMicrotask(() => this.scrollToBottom());
+    }, _err => {
+      if (this.assistantTypingIndex != null) {
+        this.messages.splice(this.assistantTypingIndex, 1);
+        this.assistantTypingIndex = null;
+      }
+    });
+}
 
   async copyMessage(text: string) {
     await navigator.clipboard.writeText(text ?? '');
@@ -271,7 +371,38 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   rateMessage(index: number, kind: 'like' | 'dislike') {
-    this.showToast(`Message ${kind}d`, 'info');
+    const message = this.messages[index];
+    if (!message || message.isUser) return;
+
+    if (kind === 'like') {
+      message.liked = message.liked === true ? null : true;
+    } else {
+      message.liked = message.liked === false ? null : false;
+    }
+
+    this.showToast(`Message ${message.liked === true ? 'liked' : message.liked === false ? 'disliked' : 'rating removed'}`, 'info');
+  }
+
+  regenerateMessage(index: number) {
+    const message = this.messages[index];
+    if (!message || message.isUser) return;
+
+    let userMessageIndex = -1;
+    for (let i = index - 1; i >= 0; i--) {
+      if (this.messages[i].isUser) {
+        userMessageIndex = i;
+        break;
+      }
+    }
+
+    if (userMessageIndex === -1) return;
+
+    const userMessage = this.messages[userMessageIndex];
+    this.userQuery = userMessage.text;
+
+    this.messages.splice(userMessageIndex + 1);
+
+    this.onSubmitQuery();
   }
 
   formatTimestamp(ts: number) {
@@ -290,14 +421,15 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  private scrollToBottom() {
-    const el = this.messagesContainer?.nativeElement;
-    if (el) {
-      setTimeout(() => {
-        el.scrollTop = el.scrollHeight;
-      }, 50);
-    }
+private scrollToBottom() {
+  const el = this.messagesContainer?.nativeElement;
+  if (el) {
+    // Use requestAnimationFrame for smoother scrolling
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
   }
+}
 
   private showToast(text: string, type: 'info'|'success'|'error' = 'success') {
     this.toastMsg = { text, type };

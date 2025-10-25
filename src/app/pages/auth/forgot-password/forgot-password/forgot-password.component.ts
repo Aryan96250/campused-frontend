@@ -47,7 +47,12 @@ export class ForgotPasswordComponent {
         this.loading = false;
         // this.toastr.error( error.email, 'error' )
       }
-    } )
+    })
 
+  }
+
+
+    nevigate(){
+    this.router.navigate([''])
   }
 }

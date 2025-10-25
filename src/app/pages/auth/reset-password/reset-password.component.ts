@@ -63,4 +63,8 @@ ngOnInit(): void {
       }
     })
   }
+
+    nevigate(){
+    this.router.navigate([''])
+  }
 }

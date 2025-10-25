@@ -57,28 +57,6 @@ body {
   transform: scale(1.05);
 }
 
-.logout-menu {
-  position: absolute;
-  top: 65px;
-  left: 0;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 8px;
-  width: 130px;
-  z-index: 99999 !important;
-
-  button {
-    font-size: 14px;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-}
-
 .nav__links {
   display: flex;
   gap: 40px;
@@ -110,6 +88,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
 }
 
 .btn {
@@ -139,6 +118,18 @@ body {
   transform: translateY(-1px);
 }
 
+.btn--ghost {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.btn--ghost:hover {
+  background: #f9fafb;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
 .user-icon {
   width: 36px;
   height: 36px;
@@ -152,6 +143,7 @@ body {
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
+  position: relative;
 }
 
 .user-icon:hover {
@@ -162,29 +154,60 @@ body {
 .free- p {
   font-family: "Poppins", sans-serif;
   font-weight: 500;
-  font-style: Medium;
+  font-style: normal;
   font-size: 20px;
   line-height: 100%;
   letter-spacing: 0%;
   text-align: center;
   vertical-align: middle;
+  margin: 0;
+}
+
+// Bootstrap dropdown override
+::ng-deep {
+  .dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    margin-top: 8px !important;
+    min-width: 120px !important;
+    width: auto !important;
+    height: auto !important;
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    padding: 8px !important;
+    z-index: 9999 !important;
+    
+    .dropdown-item {
+      padding: 8px 16px !important;
+      font-size: 14px !important;
+      color: #6b7280 !important;
+      border-radius: 4px !important;
+      transition: all 0.2s !important;
+      text-align: left !important;
+      white-space: nowrap !important;
+      
+      &:hover {
+        background: #f9fafb !important;
+        color: #111827 !important;
+      }
+    }
+  }
+  
+  // Make sure the dropdown container has proper positioning
+  .dropdown {
+    position: relative !important;
+  }
 }
 
 @media (max-width: 768px) {
   .nav__links {
     display: none;
   }
-// ul.dropdown-menu.ng-star-inserted {
-// }
 
-::ng-deep ul.dropdown-menu.ng-star-inserted {
-  margin-right: 135px !important;
-    margin-top: 85px !important;
-    text-align: center !important;
-    width: 38px !important;
-    height: 31px !important;
-    inset: unset !important;
-}
   .nav__inner {
     padding: 12px 0;
   }
@@ -193,12 +216,8 @@ body {
     padding: 8px 16px;
     font-size: 13px;
   }
-}
-
-::ng-deep ul.dropdown-menu.ng-star-inserted {
-    margin-top: 85px !important;
-    text-align: center !important;
-    width: 38px !important;
-    height: 31px !important;
-    inset: unset !important;
+  
+  .free- p {
+    font-size: 16px;
+  }
 }

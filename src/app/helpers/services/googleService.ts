@@ -107,7 +107,7 @@ export class GoogleAuthService {
         const authService = this.injector.get(AuthService);
         localStorage.setItem('userName',res.name)
         authService.setToken(res); // Adjust if response has 'access_token'
-        this.router.navigate(['/dashboard'])
+        this.router.navigate(['/chat'])
       },
       error: (err) => {
         console.error('Google auth API error:', err); // Log for CORS/network debugging

@@ -30,6 +30,26 @@ interface FilePreview {
   isImage: boolean;
 }
 
+interface ChatMsg {
+  text: string;
+  isUser: boolean;
+  timestamp: number;
+  files?: MessageFile[];
+  liked?: boolean | null;
+}
+
+interface MessageFile {
+  name: string;
+  url: string;
+  type: string;
+}
+
+interface FilePreview {
+  file: File;
+  previewUrl?: string;
+  isImage: boolean;
+}
+
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',

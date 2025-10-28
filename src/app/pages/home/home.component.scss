@@ -1072,9 +1072,10 @@ p.medium-text {
   }
 
   .upgrade {
-    margin: 0 15px 30px;
+    // margin: 0 15px 30px;
     padding: 25px 20px;
     border-radius: 25px;
+    width: 93%;
   }
 
   .upgrade__content h3 {
@@ -1127,7 +1128,7 @@ p.medium-text {
   }
 
   .testimonials-section .carousel .card {
-    flex: 0 0 90%;
+    flex: 0 0 84%;
     max-width: 90%;
   }
 

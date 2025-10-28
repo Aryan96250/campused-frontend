@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+<<<<<<< HEAD
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators'; // For mock delays
 import { HttpClient } from '@angular/common/http';
@@ -13,11 +14,19 @@ export interface Message {
   isLoading?: boolean;
   isSent?: boolean;
   feedback?: { isLiked: boolean; isDisliked: boolean }; // New: For like/unlike
+=======
+import { BehaviorSubject, Observable } from 'rxjs';
+
+export interface InitialChatData {
+  query: string;
+  files: File[];
+>>>>>>> 8eb66a8 (fixed the new changes)
 }
 
 @Injectable({
   providedIn: 'root'
 })
+<<<<<<< HEAD
 export class ChatService {
   private initialQuerySubject = new BehaviorSubject<string | null>(null);
   public initialQuery$ = this.initialQuerySubject.asObservable();
@@ -146,5 +155,21 @@ export class ChatService {
         resolve(response);
       }, 1500 + (files.length * 500)); // Extra delay for files to simulate processing
     });
+=======
+export class ChatStateService {
+  private initialDataSubject = new BehaviorSubject<InitialChatData | null>(null);
+  public initialData$: Observable<InitialChatData | null> = this.initialDataSubject.asObservable();
+
+  setInitialData(query: string, files: File[] = []): void {
+    this.initialDataSubject.next({ query, files });
+  }
+
+  getInitialData(): InitialChatData | null {
+    return this.initialDataSubject.value;
+  }
+
+  clearInitialData(): void {
+    this.initialDataSubject.next(null);
+>>>>>>> 8eb66a8 (fixed the new changes)
   }
 }

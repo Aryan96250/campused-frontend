@@ -5,11 +5,20 @@ main {
      background: #0000000a;
     overflow-x: hidden;
 }
+<<<<<<< HEAD
 .btn{display:inline-block;padding:.7rem 1.1rem;border-radius:12px;font-weight:700;text-decoration:none}
 .btn--primary{background:var(--orange);color:#fff;box-shadow:0 6px 16px rgba(255,111,61,.25)}
 .btn--ghost{background:#f3f4f6;color:#111}
 .btn--dark{background:#111;color:#fff}
 .btn--lg{padding:1rem 1.4rem;border-radius:14px}
+=======
+.btn{display:inline-block;padding:.7rem 1.1rem;border-radius:12px;font-weight:300;text-decoration:none}
+.btn--primary{background:var(--orange);color:#fff;box-shadow:0 6px 16px rgba(255,111,61,.25)}
+.btn--normal{border: 1px solid;color:#000;box-shadow:0 6px 16px rgba(255,111,61,.25)}
+.btn--ghost{background:#f3f4f6;color:#111}
+.btn--dark{background:#111;color:#fff}
+.btn--lg{padding: 8px 64px 13px 64px;border-radius:11px}
+>>>>>>> 8eb66a8 (fixed the new changes)
 
 .hero__inner {
   display: grid;
@@ -17,7 +26,11 @@ main {
   gap: 32px;
   align-items: center;
 }
+<<<<<<< HEAD
 .hero__text h1 {
+=======
+.hero__text h2 {
+>>>>>>> 8eb66a8 (fixed the new changes)
   font-family: "Quicksand", sans-serif;
   font-size: 77px;
   line-height: 1;
@@ -47,26 +60,56 @@ main {
   .hero__art {
     display: block;
   }
+<<<<<<< HEAD
   .hero__text h1 {
     font-size: 77px;
   }
 }
 @media (max-width: 1200px) {
   .hero__text h1 {
+=======
+  .hero__text h2 {
+    font-size: 72px;
+    
+  }
+}
+@media (max-width: 1200px) {
+  .hero__text h2 {
+>>>>>>> 8eb66a8 (fixed the new changes)
     font-size: 96px;
   }
 }
 @media (max-width: 900px) {
+<<<<<<< HEAD
   .hero__text h1 {
+=======
+  .hero__text h2 {
+>>>>>>> 8eb66a8 (fixed the new changes)
     font-size: 72px;
   }
 }
 @media (max-width: 600px) {
+<<<<<<< HEAD
   .hero__text h1 {
+=======
+  .hero__text h2 {
+>>>>>>> 8eb66a8 (fixed the new changes)
     font-size: 48px;
   }
 }
 
+<<<<<<< HEAD
+=======
+.buttons {
+    display: flex;
+    gap: 24px;
+}
+
+span.summary {
+    color: #BD94F4;
+    font-weight: 700;
+}
+>>>>>>> 8eb66a8 (fixed the new changes)
 // INPUT BLOCK SECTION
 .input-block {
   background: var(--bg-light);
@@ -396,6 +439,7 @@ img.brand__logo {
   opacity: 1 !important;
 }
 
+<<<<<<< HEAD
 .hero__text h1 span.accent,
 .hero__text h1 span.brand-name {
   font-weight: 700 !important;
@@ -410,6 +454,21 @@ img.brand__logo {
   // leading-trim: NONE;
   line-height: 100% !important;
   letter-spacing: 0% !important;
+=======
+.hero__text h2 span.accent,
+.hero__text h2 span.brand-name {
+  font-weight: 700 !important;
+      line-height: normal;
+}
+
+.hero__text p {
+    font-family: "Quicksand", sans-serif;
+    font-weight: 400 !important;
+    font-style: Bold !important;
+    font-size: 30px !important;
+    color: #1e1e1e;
+    line-height: 37px;
+>>>>>>> 8eb66a8 (fixed the new changes)
 }
 
 .hero__text p strong {
@@ -438,12 +497,22 @@ img.main-image {
   opacity: 1;
 }
 img.check_img {
+<<<<<<< HEAD
     width: 819px;
     position: absolute;
     top: 289px;
     right: 0px;
 }
 
+=======
+    width: 746px;
+    position: absolute;
+    top: 138px;
+    right: 77px;
+}
+
+
+>>>>>>> 8eb66a8 (fixed the new changes)
 .hero{
     padding: 100px 0 236px 0 !important;
 }
@@ -452,8 +521,12 @@ img.line_img {
     position: absolute;
     width: 1340px;
     left: 7px;
+<<<<<<< HEAD
        top: 227px;
 
+=======
+    top: 303px;
+>>>>>>> 8eb66a8 (fixed the new changes)
 }
 
 // last section result cards
@@ -670,3 +743,569 @@ p.medium-text {
     }
   }
 }
+<<<<<<< HEAD
+=======
+
+// Add these styles to your home.component.scss file
+
+.file-previews-container {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+
+  .files-label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #333;
+  }
+
+  .files-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .file-preview {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      position: relative;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #ccc;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .file-thumbnail {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        overflow: hidden;
+        flex-shrink: 0;
+
+        .preview-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      .file-icon-container {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f5f5f5;
+        border-radius: 4px;
+        flex-shrink: 0;
+        color: #999;
+      }
+
+      .file-info {
+        flex: 1;
+        min-width: 0;
+
+        .file-name {
+          font-size: 13px;
+          font-weight: 500;
+          margin: 0;
+          color: #333;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .file-size {
+          font-size: 12px;
+          margin: 2px 0 0 0;
+          color: #999;
+        }
+      }
+
+      .remove-file {
+        background: none;
+        border: none;
+        color: #999;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: #f0f0f0;
+          color: #d32f2f;
+        }
+      }
+    }
+  }
+}
+
+// Media query for mobile
+@media (max-width: 768px) {
+  .file-previews-container {
+    .files-list {
+      gap: 8px;
+
+      .file-preview {
+        padding: 8px 10px;
+        font-size: 12px;
+
+        .file-thumbnail,
+        .file-icon-container {
+          width: 35px;
+          height: 35px;
+        }
+
+        .remove-file {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+}
+
+
+
+// ============================================
+// MOBILE RESPONSIVE STYLES ONLY
+// ============================================
+
+// Large tablets (768px - 1024px)
+@media (max-width: 1024px) {
+  .hero__text h2 {
+    font-size: 60px;
+  }
+
+  .hero__text p {
+    font-size: 24px !important;
+    line-height: 32px;
+  }
+
+  img.check_img {
+    width: 550px;
+    top: 100px;
+    right: 50px;
+  }
+
+  .upgrade__content h3 {
+    font-size: 36px;
+  }
+
+  .testimonials-section .carousel .card {
+    flex: 0 0 calc(100% / 2.5);
+    max-width: calc(100% / 2.5);
+  }
+}
+
+// Tablets (768px - 900px)
+@media (max-width: 900px) {
+  .hero {
+    padding: 60px 0 150px 0 !important;
+  }
+
+  .hero__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .hero__text h2 {
+    font-size: 48px;
+  }
+
+  .hero__text p {
+    font-size: 20px !important;
+    line-height: 28px;
+  }
+
+  .hero__art {
+    display: none;
+  }
+
+  img.check_img,
+  img.line_img {
+    display: none;
+  }
+
+  .buttons {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .btn--lg {
+    padding: 10px 32px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .input-block {
+    padding: 40px 0;
+  }
+
+  .input-block__title {
+    font-size: 20px;
+  }
+
+  .input-block__tagline {
+    font-size: 26px;
+  }
+
+  .ask {
+    margin: 0 auto 40px;
+    padding: 16px 20px;
+  }
+
+  .process {
+    flex-direction: column;
+    gap: 40px;
+    margin: 0 0 40px;
+  }
+
+  .process__arrow {
+    transform: rotate(90deg);
+    margin-top: 0;
+  }
+
+  .results {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .results__list {
+    display: block;
+    text-align: center;
+  }
+
+  .results__title-gray,
+  .results__title-brand {
+    font-size: 24px;
+  }
+
+  .results__trust {
+    font-size: 18px;
+  }
+
+  .upgrade {
+    height: auto;
+    padding: 30px 20px;
+    margin-bottom: 40px;
+  }
+
+  .upgrade__inner {
+    grid-template-columns: 1fr;
+  }
+
+  img.person_image,
+  img.person_image1 {
+    display: none;
+  }
+
+  .upgrade__content h3 {
+    font-size: 28px;
+  }
+
+  .upgrade__content li {
+    font-size: 13px;
+  }
+
+  .result-section {
+    padding: 30px 20px;
+    gap: 20px;
+  }
+
+  .result-cards {
+    width: calc(50% - 10px);
+    min-width: 200px;
+  }
+
+  section.results-2 {
+    padding: 30px 20px;
+  }
+
+  .testimonials-section .header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .testimonials-section .carousel .card {
+    flex: 0 0 calc(100% / 1.5);
+    max-width: calc(100% / 1.5);
+  }
+}
+
+// Mobile devices (480px - 768px)
+@media (max-width: 768px) {
+  .hero {
+    padding: 40px 0 100px 0 !important;
+  }
+
+  .hero__text h2 {
+    font-size: 36px;
+  }
+
+  .hero__text p {
+    font-size: 16px !important;
+    line-height: 24px;
+  }
+
+  .buttons {
+    gap: 12px;
+  }
+
+  .btn--lg {
+    padding: 8px 24px;
+    font-size: 14px;
+  }
+
+  .input-block {
+    padding: 30px 0;
+    margin-top: -20px;
+  }
+
+  .input-block__title {
+    font-size: 18px;
+    padding: 0 15px;
+  }
+
+  .input-block__tagline {
+    font-size: 22px;
+    padding: 0 15px;
+    margin: 0 0 30px;
+  }
+
+  .ask {
+    margin: 0 15px 30px;
+    padding: 15px;
+    border-radius: 15px;
+  }
+
+  .ask__input {
+    font-size: 14px;
+    padding: 10px 0;
+  }
+
+  .ask__options span {
+    display: none;
+  }
+
+  .ask__submit {
+    width: 36px;
+    height: 36px;
+  }
+
+  .process {
+    gap: 30px;
+    padding: 0 15px;
+  }
+
+  .process__icon {
+    width: 60px;
+    height: 60px;
+
+    img {
+      width: 60px;
+      height: 60px;
+    }
+  }
+
+  .process__text {
+    font-size: 14px;
+    max-width: 120px;
+  }
+
+  .results {
+    padding: 0 15px;
+  }
+
+  .results__list li {
+    font-size: 13px;
+  }
+
+  .results__trust {
+    font-size: 16px;
+  }
+
+  .upgrade {
+    margin: 0 15px 30px;
+    padding: 25px 20px;
+    border-radius: 25px;
+  }
+
+  .upgrade__content h3 {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+
+  .upgrade__content ul {
+    padding-left: 0;
+  }
+
+  .upgrade__content li {
+    font-size: 12px;
+    margin: 6px 0;
+  }
+
+  .result-section {
+    padding: 20px 15px;
+    gap: 15px;
+  }
+
+  .result-cards {
+    width: calc(50% - 8px);
+    padding: 15px 10px;
+  }
+
+  .result-cards img {
+    width: 50px;
+    height: 50px;
+  }
+
+  p.bold-text {
+    font-size: 16px;
+  }
+
+  p.medium-text {
+    font-size: 12px;
+  }
+
+  section.results-2 {
+    padding: 20px 15px;
+  }
+
+  .testimonials-section {
+    padding: 1.5rem 0.5rem;
+  }
+
+  .testimonials-section .header h3 {
+    font-size: 1.4rem;
+  }
+
+  .testimonials-section .carousel .card {
+    flex: 0 0 90%;
+    max-width: 90%;
+  }
+
+  .file-previews-container {
+    padding: 12px;
+    margin-top: 15px;
+
+    .files-list {
+      gap: 8px;
+
+      .file-preview {
+        padding: 8px 10px;
+        width: 100%;
+
+        .file-thumbnail,
+        .file-icon-container {
+          width: 35px;
+          height: 35px;
+        }
+
+        .file-info .file-name {
+          font-size: 12px;
+        }
+
+        .remove-file {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+}
+
+// Small mobile devices (below 480px)
+@media (max-width: 480px) {
+  .hero {
+    padding: 30px 0 80px 0 !important;
+  }
+
+  .hero__text h2 {
+    font-size: 28px;
+    margin-bottom: 15px;
+    text-align: center !important;
+  }
+
+  .hero__text p {
+    font-size: 14px !important;
+    line-height: 20px;
+    margin-bottom: 15px;
+    text-align: center !important;
+  }
+
+  .btn--lg {
+    padding: 8px 20px;
+    font-size: 13px;
+  }
+
+  .input-block__title {
+    font-size: 16px;
+  }
+
+  .input-block__tagline {
+    font-size: 18px;
+  }
+
+  .ask {
+    padding: 12px;
+  }
+
+  .process__icon {
+    width: 50px;
+    height: 50px;
+
+    img {
+      width: 50px;
+      height: 50px;
+    }
+  }
+
+  .process__text {
+    font-size: 12px;
+  }
+
+  .results__title-gray,
+  .results__title-brand {
+    font-size: 20px;
+  }
+
+  .results__list li {
+    font-size: 12px;
+  }
+
+  .results__trust {
+    font-size: 14px;
+  }
+
+  .upgrade__content h3 {
+    font-size: 18px;
+  }
+
+  .upgrade__content li {
+    font-size: 11px;
+  }
+
+  .result-cards {
+    width: 100%;
+  }
+
+  .testimonials-section .header h3 {
+    font-size: 1.2rem;
+  }
+
+  .testimonials-section .header p {
+    font-size: 0.85rem;
+  }
+}
+>>>>>>> 8eb66a8 (fixed the new changes)

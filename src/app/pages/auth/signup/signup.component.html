@@ -4,7 +4,11 @@
       <!-- LEFT SIDE: Register Form -->
       <div class="col-lg-5">
         <div class="auth__form-wrapper">
+<<<<<<< HEAD
           <div class="auth__logo">
+=======
+          <div class="auth__logo"  style="cursor: pointer;" (click)="nevigate()">
+>>>>>>> 8eb66a8 (fixed the new changes)
             <img src="assets/images/Logo.png" alt="Campused.ai" />
           </div>
 
@@ -392,6 +396,19 @@
               <span *ngIf="!loading">Start Studying Free</span>
               <span *ngIf="loading" class="loader"></span>
             </button>
+<<<<<<< HEAD
+=======
+                 <!-- Social Login -->
+            <div class="social-login">
+              <button type="button" class="btn btn--social google" (click)="registerWithGoogle()">
+                <img src="assets/images/google.png" alt="Google" />
+               &nbsp;&nbsp; Continue with Google
+              </button>&nbsp;&nbsp;&nbsp;
+              <!-- <button type="button" class="btn btn--social apple" (click)="registerWithApple()" style="border-radius: 28px;">
+                <img src="assets/images/apple.png" alt="Apple" />
+              </button> -->
+            </div>
+>>>>>>> 8eb66a8 (fixed the new changes)
 
             <!-- Footer -->
             <p class="auth__footer" style="margin-top: 1rem;">
@@ -399,6 +416,7 @@
               <a [routerLink]="'/login'">Login</a>
             </p>
 
+<<<<<<< HEAD
             <!-- Social Login -->
             <div class="social-login">
               <button type="button" class="btn btn--social google" (click)="registerWithGoogle()" style="border-radius: 28px;">
@@ -408,6 +426,9 @@
                 <img src="assets/images/apple.png" alt="Apple" />
               </button>
             </div>
+=======
+       
+>>>>>>> 8eb66a8 (fixed the new changes)
           </form>
         </div>
       </div>

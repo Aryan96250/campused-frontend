@@ -12,7 +12,13 @@
     <div class="container">
       <div class="grid">
         <div class="card" *ngFor="let plan of plans" [class.popular]="plan.isPopular">
+<<<<<<< HEAD
           <div class="badge" *ngIf="plan.isPopular"><img src="assets/images/starIcon.png"/>Most Popular</div>
+=======
+          <div class="badge" *ngIf="plan.isPopular">
+            <img src="assets/images/starIcon.png"/>Most Popular
+          </div>
+>>>>>>> 8eb66a8 (fixed the new changes)
           <h3>{{ plan.name }}</h3>
           <p class="description">{{ plan.description }}</p>
           <div class="price">{{ plan.price }} <span>One-time</span></div>
@@ -21,7 +27,14 @@
           <ul>
             <li *ngFor="let feature of plan.features">{{ feature }}</li>
           </ul>
+<<<<<<< HEAD
           <button class="btn" [ngClass]="plan.buttonClass" (click)="onSelectPlan(plan.name)">
+=======
+          <button 
+            class="btn" 
+            [ngClass]="plan.buttonClass" 
+            (click)="onSelectPlan(plan)">
+>>>>>>> 8eb66a8 (fixed the new changes)
             {{ plan.buttonText }}
           </button>
           <p class="guarantee">30-day money-back guarantee</p>

@@ -1,39 +1,15 @@
 // src/app/helpers/services/apiService.ts
 import { Injectable } from '@angular/core';
-<<<<<<< HEAD
-import { HttpClient } from '@angular/common/http';
-import {environment} from '../../../environments/environment';
-import { Observable } from 'rxjs';
-=======
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
->>>>>>> 8eb66a8 (fixed the new changes)
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
-<<<<<<< HEAD
-  register(payload:any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/auth/signup`, payload);
-  }
-
-  login(payload: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/auth/signin`, payload);
-  }
-
-  forgotPassword(payload: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/auth/forgot-password`, payload);
-  }
-
-    googleAuth(payload:any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/auth/google-auth`, payload);
-  }
-}
-=======
   // ---------- AUTH ----------
   register(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/auth/signup`, payload);
@@ -112,4 +88,3 @@ verifyEmail(token: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/subscriptions/status`);
   }
 }
->>>>>>> 8eb66a8 (fixed the new changes)

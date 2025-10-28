@@ -1,33 +1,4 @@
 import { CommonModule } from '@angular/common';
-<<<<<<< HEAD
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterLink, RouterModule, Router } from '@angular/router';
-
-@Component({
-  selector: 'app-header',
-  standalone: true,
-  imports: [CommonModule, RouterLink, RouterModule,  BsDropdownDirective,
-    BsDropdownToggleDirective,
-    BsDropdownMenuDirective],
-  templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss']
-})
-export class HeaderComponent {
-  userName: string | null = null;
-  token: any;
-  currentUrl: any;
-  showButtons: boolean = false;
-  showLogoutMenu = false;
-
-  constructor(private router: Router) {
-    this.currentPath = this.router.url == "/pricing"; 
-    this.currentUrl = this.router.url == '/'  
-    console.log(this.currentPath, this.currentUrl) // gives "/pricing"
-  }     
-
-
-}
-=======
 import { Component, HostListener } from '@angular/core';
 import { Router, RouterLink, RouterModule } from '@angular/router';
 import { AuthService } from '../../helpers/services/authService';
@@ -111,4 +82,3 @@ onDocumentClick(event: MouseEvent): void {
   }
 }
 }
->>>>>>> 8eb66a8 (fixed the new changes)

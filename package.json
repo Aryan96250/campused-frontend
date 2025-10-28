@@ -10,10 +10,7 @@
   },
   "private": true,
   "dependencies": {
-<<<<<<< HEAD
-=======
     "@abacritt/angularx-social-login": "^2.5.1",
->>>>>>> 8eb66a8 (fixed the new changes)
     "@angular/animations": "^19.2.15",
     "@angular/common": "^19.2.0",
     "@angular/compiler": "^19.2.0",
@@ -23,10 +20,7 @@
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
     "@fortawesome/fontawesome-free": "^7.1.0",
-<<<<<<< HEAD
-=======
     "@revenuecat/purchases-js": "^1.16.1",
->>>>>>> 8eb66a8 (fixed the new changes)
     "bootstrap": "^5.3.8",
     "ng-otp-input": "^2.0.9",
     "ngx-bootstrap": "^20.0.2",

@@ -34,21 +34,6 @@ export class ForgotPasswordComponent {
       return;
     }
     this.loading = true;
-<<<<<<< HEAD
-    this.api.forgotPassword( this.forgotPasswordForm.value.eamil ).subscribe( {
-      next: ( response: any ) => {
-        this.router.navigate( [ '/reset-password' ] );
-        this.toastr.success( response.detail, 'success' )
-        this.loading = false;
-      },
-      error: ( error: any ) => {
-        this.loading = false;
-        // this.toastr.error( error.email, 'error' )
-      }
-    })
-
-  }
-=======
     let body = {
       email:  this.forgotPasswordForm.value.email
     }
@@ -70,5 +55,4 @@ export class ForgotPasswordComponent {
     nevigate(){
     this.router.navigate([''])
   }
->>>>>>> 8eb66a8 (fixed the new changes)
 }

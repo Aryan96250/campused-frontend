@@ -96,16 +96,6 @@ export class SignupComponent implements OnDestroy{
         }
       },
       error: ( error: any ) => {
-<<<<<<< HEAD
-        if ( error.status === 400 && error.error?.details ) {
-          const details = error.error.details;
-           this.loading=false
-          Object.keys( details ).forEach( field => {
-            details[ field ].forEach( ( msg: string ) => {
-              this.toastr.error( msg, 'Validation Error' );
-            } );
-          } );
-=======
         console.log(error.status,error.error.error)
         if ( error.status === 400) {
           if(error.error.error){
@@ -120,7 +110,6 @@ export class SignupComponent implements OnDestroy{
             });
           }
           this.loading=false
->>>>>>> 8eb66a8 (fixed the new changes)
         }
         else {
            this.loading=false
@@ -142,12 +131,9 @@ export class SignupComponent implements OnDestroy{
     console.log( 'Register with Apple' );
   }
 
-<<<<<<< HEAD
-=======
     nevigate(){
     this.router.navigate([''])
   }
->>>>>>> 8eb66a8 (fixed the new changes)
   ngOnDestroy(): void {
     this.google.cancel();
   }

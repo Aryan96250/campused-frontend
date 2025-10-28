@@ -1,13 +1,10 @@
 <header class="nav" [ngStyle]="{'background': currentUrl ? '#0000000a' : '#fff'}">
   <div class="container nav__inner">
-<div class="brand-wrapper">
-  <div class="brand">
-    <img src="assets/images/Logo.png" alt="CampusED.AI" class="brand__logo" />
-  </div>
-</div>
-
-
-
+<<<<<<< HEAD
+    <div class="brand">
+      <img src="assets/images/Logo.png" alt="CampusED.AI" class="brand__logo"/>
+    </div>
+    
     <nav class="nav__links">
       <a
         routerLink="/"
@@ -31,9 +28,88 @@
       </div>
     </div>
 
+
+  <div class="nav__cta" *ngIf="!currentPath">
+    <a routerLink="/signup" class="btn btn--ghost">Sign Up</a>
+    <a routerLink="/login" class="btn btn--primary">Login</a>
+  </div>
+
+    
+=======
+    <div class="brand-wrapper">
+      <div class="brand">
+        <img src="assets/images/Logo.png" alt="CampusED.AI" class="brand__logo" />
+      </div>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <nav class="nav__links">
+      <a
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        >Home</a
+      >
+      <a routerLink="/pricing" routerLinkActive="active">Pricing</a>
+      <a routerLink="/exams" routerLinkActive="active">Exams</a>
+      <a routerLink="/contact-us" routerLinkActive="active">Contact Us</a>
+      <a routerLink="/chat" routerLinkActive="active" *ngIf="showButtons">Chat</a>
+    </nav>
+
+    <!-- Desktop CTA -->
+    <div class="nav__cta" *ngIf="showButtons" dropdown>
+      <p class="free-">{{userName || 'John Doe'}}</p>
+      <div class="user-icon" dropdownToggle>
+        <span><i class="fa-solid fa-user"></i></span>
+        <ul *dropdownMenu class="dropdown-menu">
+          <li><a class="dropdown-item" href="#" (click)="logout()">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+
     <div class="nav__cta" *ngIf="!showButtons">
       <a routerLink="/signup" class="btn btn--ghost">Sign Up</a>
       <a routerLink="/login" class="btn btn--primary">Login</a>
     </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [class.active]="mobileMenuOpen">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" [class.active]="mobileMenuOpen">
+    <nav class="mobile-nav__links">
+      <a
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="closeMobileMenu()"
+        >Home</a
+      >
+      <a routerLink="/pricing" routerLinkActive="active" (click)="closeMobileMenu()">Pricing</a>
+      <a routerLink="/exams" routerLinkActive="active" (click)="closeMobileMenu()">Exams</a>
+      <a routerLink="/contact-us" routerLinkActive="active" (click)="closeMobileMenu()">Contact Us</a>
+      <a routerLink="/chat" routerLinkActive="active" *ngIf="showButtons" (click)="closeMobileMenu()">Chat</a>
+    </nav>
+
+    <div class="mobile-nav__cta" *ngIf="showButtons">
+      <div class="mobile-user-info">
+        <div class="user-icon">
+          <span><i class="fa-solid fa-user"></i></span>
+        </div>
+        <p class="free-">{{userName || 'John Doe'}}</p>
+      </div>
+      <a href="#" class="btn btn--ghost btn--full" (click)="logout()">Logout</a>
+    </div>
+
+    <div class="mobile-nav__cta" *ngIf="!showButtons">
+      <a routerLink="/signup" class="btn btn--ghost btn--full" (click)="closeMobileMenu()">Sign Up</a>
+      <a routerLink="/login" class="btn btn--primary btn--full" (click)="closeMobileMenu()">Login</a>
+    </div>
+>>>>>>> 8eb66a8 (fixed the new changes)
   </div>
 </header>

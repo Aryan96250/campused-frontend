@@ -8,6 +8,27 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
+import { ActivatedRoute, Router } from '@angular/router';
+
+interface ChatMsg {
+  text: string;
+  isUser: boolean;
+  timestamp: number;
+  files?: MessageFile[];
+  liked?: boolean | null;
+}
+
+interface MessageFile {
+  name: string;
+  url: string;
+  type: string;
+}
+
+interface FilePreview {
+  file: File;
+  previewUrl?: string;
+  isImage: boolean;
+}
 
 interface ChatMsg {
   text: string;
@@ -50,19 +71,35 @@ export class ChatComponent implements OnInit, OnDestroy {
   private toastTimer: any = null;
   private destroy$ = new Subject<void>();
   private hasInitialData = false;
-  submitTure = true
+  submitTure = true;
+  private isInitializing = true;  // Flag to handle params only once
 
   @ViewChild('filePicker') filePicker!: ElementRef<HTMLInputElement>;
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
 
   constructor(
     private api: ApiService,
-    private chatStateService: ChatStateService
+    private chatStateService: ChatStateService,
+    private route: ActivatedRoute,
+    private router: Router 
   ) {}
 
   ngOnInit() {
     this.subscribeToInitialData();
-    this.refreshChannels();
+    // Load channels first, then handle params
+    this.refreshChannels().then(() => {
+      this.route.params.subscribe(params => {
+        if (this.isInitializing) {
+          this.isInitializing = false;
+          const channelId = params['channelId'];
+          if (channelId && this.channels.some(c => c.id === channelId)) {
+            this.loadChannel(channelId);
+          } else {
+            this.createNewChat();
+          }
+        }
+      });
+    });
   }
 
   private subscribeToInitialData(): void {
@@ -83,33 +120,33 @@ export class ChatComponent implements OnInit, OnDestroy {
       });
   }
 
-  refreshChannels() {
-    this.api.listChannels().subscribe((list: any) => {
-      this.channels = list ?? [];
-      
-      if (!this.hasInitialData && !this.activeChannelId && this.channels.length) {
-        this.loadChannel(this.channels[0].id);
-      }
+  private async refreshChannels(): Promise<void> {
+    return new Promise((resolve) => {
+      this.api.listChannels().subscribe((list: any) => {
+        this.channels = list ?? [];
+        resolve();
+      });
     });
   }
 
- loadChannel(id: string) {
-  this.activeChannelId = id;
-  this.api.getChannel(id).subscribe((payload: any) => {
-    const conv = payload?.conversation ?? [];
-    this.messages = conv
-      .filter((m: any) => m?.role !== 'system') // Exclude system messages
-      .map((m: any) => ({
-        text: m?.content ?? m?.text ?? '',
-        isUser: m?.role === 'user',
-        timestamp: Date.now(),
-        files: this.parseMessageFiles(m),
-        liked: m?.liked ?? null
-      }));
-    queueMicrotask(() => this.scrollToBottom());
-  });
-  this.mobileSidebarOpen = false;
-}
+  loadChannel(id: string) {
+    this.activeChannelId = id;
+    this.api.getChannel(id).subscribe((payload: any) => {
+      const conv = payload?.conversation ?? [];
+      this.messages = conv
+        .filter((m: any) => m?.role !== 'system') // Exclude system messages
+        .map((m: any) => ({
+          text: m?.content ?? m?.text ?? '',
+          isUser: m?.role === 'user',
+          timestamp: Date.now(),
+          files: this.parseMessageFiles(m),
+          liked: m?.liked ?? null
+        }));
+      queueMicrotask(() => this.scrollToBottom());
+    });
+    this.mobileSidebarOpen = false;
+    this.router.navigate(['/chat', id], { replaceUrl: true });
+  }
 
   private parseMessageFiles(message: any): MessageFile[] {
     const files: MessageFile[] = [];
@@ -162,6 +199,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.userQuery = '';
     this.pendingFiles = [];
     this.clearFilePreviews();
+    this.router.navigate(['/chat'], { replaceUrl: true });
   }
 
   handleEnter(e: KeyboardEvent) {
@@ -224,133 +262,134 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.filePreviews = [];
   }
 
-onSubmitQuery() {
-  const q = (this.userQuery ?? '').trim();
-  if (!q && this.pendingFiles.length === 0) return;
+  onSubmitQuery() {
+    const q = (this.userQuery ?? '').trim();
+    if (!q && this.pendingFiles.length === 0) return;
 
-  // Store files for the user message
-  const userFiles: MessageFile[] = this.pendingFiles.map(file => ({
-    name: file.name,
-    url: URL.createObjectURL(file),
-    type: file.type.startsWith('image/') ? 'image' : 
-          file.type === 'application/pdf' ? 'pdf' :
-          file.name.endsWith('.doc') || file.name.endsWith('.docx') ? 'document' :
-          file.name.endsWith('.xls') || file.name.endsWith('.xlsx') ? 'spreadsheet' : 'file'
-  }));
+    // Store files for the user message
+    const userFiles: MessageFile[] = this.pendingFiles.map(file => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+      type: file.type.startsWith('image/') ? 'image' : 
+            file.type === 'application/pdf' ? 'pdf' :
+            file.name.endsWith('.doc') || file.name.endsWith('.docx') ? 'document' :
+            file.name.endsWith('.xls') || file.name.endsWith('.xlsx') ? 'spreadsheet' : 'file'
+    }));
 
-  // Add user message with files
-  if (q || userFiles.length > 0) {
-    this.messages.push({ 
-      text: q || '(File upload)', 
-      isUser: true, 
+    // Add user message with files
+    if (q || userFiles.length > 0) {
+      this.messages.push({ 
+        text: q || '(File upload)', 
+        isUser: true, 
+        timestamp: Date.now(),
+        files: userFiles.length > 0 ? userFiles : undefined
+      });
+    }
+
+    // Add typing indicator
+    this.assistantTypingIndex = this.messages.push({
+      text: 'typing',
+      isUser: false,
       timestamp: Date.now(),
-      files: userFiles.length > 0 ? userFiles : undefined
-    });
-  }
+    }) - 1;
 
-  // Add typing indicator
-  this.assistantTypingIndex = this.messages.push({
-    text: 'typing',
-    isUser: false,
-    timestamp: Date.now(),
-  }) - 1;
+    // Scroll after adding messages
+    queueMicrotask(() => this.scrollToBottom());
 
-  // Scroll after adding messages
-  queueMicrotask(() => this.scrollToBottom());
+    this.isProcessing = true;
+    const files = this.pendingFiles.slice();
 
-  this.isProcessing = true;
-  const files = this.pendingFiles.slice();
+    // Clear input and files immediately
+    const queryToSend = q;
+    this.userQuery = '';
+    this.pendingFiles = [];
+    this.clearFilePreviews();
 
-  // Clear input and files immediately
-  const queryToSend = q;
-  this.userQuery = '';
-  this.pendingFiles = [];
-  this.clearFilePreviews();
-
-  const send$ = this.activeChannelId
-    ? this.api.sendMessageMultipart(this.activeChannelId, queryToSend, files)
-    : this.api.sendFirstMessage(queryToSend, files);
-  
-  if(this.activeChannelId){
-    this.refreshChannels();
-  }
-  
-  send$
-    .pipe(
-      finalize(() => {
-        this.isProcessing = false;
-        // Final scroll after everything is done
-        setTimeout(() => this.scrollToBottom(), 100);
-      }),
-      takeUntil(this.destroy$)
-    )
-    .subscribe((res: any) => {
-      if (!this.activeChannelId && res?.channel_id) {
-        this.activeChannelId = res.channel_id;
-        this.channels.unshift({ id: res.channel_id, title: res?.title || 'new chat' });
-      }
-
-      const texts: string[] = [];
-      const responseFiles: MessageFile[] = [];
-      
-      if (Array.isArray(res?.messages)) {
-        for (const m of res.messages) {
-          const t = m?.content ?? m?.text ?? m?.message ?? '';
-          if (t) texts.push(t);
-          if (m?.files) responseFiles.push(...this.parseMessageFiles(m));
+    const send$ = this.activeChannelId
+      ? this.api.sendMessageMultipart(this.activeChannelId, queryToSend, files)
+      : this.api.sendFirstMessage(queryToSend, files);
+    
+    if(this.activeChannelId){
+      this.refreshChannels();
+    }
+    
+    send$
+      .pipe(
+        finalize(() => {
+          this.isProcessing = false;
+          // Final scroll after everything is done
+          setTimeout(() => this.scrollToBottom(), 100);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((res: any) => {
+        if (!this.activeChannelId && res?.channel_id) {
+          this.activeChannelId = res.channel_id;
+          this.router.navigate(['/chat', res.channel_id], { replaceUrl: true });
+          this.channels.unshift({ id: res.channel_id, title: res?.title || 'new chat' });
         }
-      } else if (res?.message || res?.content || res?.text) {
-        texts.push(res.message ?? res.content ?? res.text);
-        if (res?.files) responseFiles.push(...this.parseMessageFiles(res));
-      } else if (res?.data?.content || res?.data?.text || res.data) {
-        texts.push(res.data.content ?? res.data.text);
-        if (res?.data?.files) responseFiles.push(...this.parseMessageFiles(res.data));
-      } else if (Array.isArray(res?.conversation)) {
-        this.messages = res.conversation.filter((m: any) => m?.role !== 'system').map((m: any) => ({
-          text: m.role === "system" ? '' : m?.content ?? m?.text ?? '',
-          isUser: m?.role === 'user',
-          timestamp: Date.now(),
-          files: this.parseMessageFiles(m),
-          liked: m?.liked ?? null
-        }));
-        this.assistantTypingIndex = null;
+
+        const texts: string[] = [];
+        const responseFiles: MessageFile[] = [];
+        
+        if (Array.isArray(res?.messages)) {
+          for (const m of res.messages) {
+            const t = m?.content ?? m?.text ?? m?.message ?? '';
+            if (t) texts.push(t);
+            if (m?.files) responseFiles.push(...this.parseMessageFiles(m));
+          }
+        } else if (res?.message || res?.content || res?.text) {
+          texts.push(res.message ?? res.content ?? res.text);
+          if (res?.files) responseFiles.push(...this.parseMessageFiles(res));
+        } else if (res?.data?.content || res?.data?.text || res.data) {
+          texts.push(res.data.content ?? res.data.text);
+          if (res?.data?.files) responseFiles.push(...this.parseMessageFiles(res.data));
+        } else if (Array.isArray(res?.conversation)) {
+          this.messages = res.conversation.filter((m: any) => m?.role !== 'system').map((m: any) => ({
+            text: m.role === "system" ? '' : m?.content ?? m?.text ?? '',
+            isUser: m?.role === 'user',
+            timestamp: Date.now(),
+            files: this.parseMessageFiles(m),
+            liked: m?.liked ?? null
+          }));
+          this.assistantTypingIndex = null;
+          queueMicrotask(() => this.scrollToBottom());
+          return;
+        }
+
+        if (this.assistantTypingIndex != null && texts.length) {
+          this.messages[this.assistantTypingIndex] = {
+            text: texts.shift()!,
+            isUser: false,
+            timestamp: Date.now(),
+            files: responseFiles.length > 0 ? responseFiles : undefined,
+            liked: null
+          };
+          this.assistantTypingIndex = null;
+        } else if (this.assistantTypingIndex != null) {
+          this.messages.splice(this.assistantTypingIndex, 1);
+          this.assistantTypingIndex = null;
+        }
+
+        for (const t of texts) {
+          this.messages.push({ 
+            text: t, 
+            isUser: false,
+            timestamp: Date.now(),
+            files: responseFiles.length > 0 ? responseFiles : undefined,
+            liked: null
+          });
+        }
+
+        // Scroll after adding response
         queueMicrotask(() => this.scrollToBottom());
-        return;
-      }
-
-      if (this.assistantTypingIndex != null && texts.length) {
-        this.messages[this.assistantTypingIndex] = {
-          text: texts.shift()!,
-          isUser: false,
-          timestamp: Date.now(),
-          files: responseFiles.length > 0 ? responseFiles : undefined,
-          liked: null
-        };
-        this.assistantTypingIndex = null;
-      } else if (this.assistantTypingIndex != null) {
-        this.messages.splice(this.assistantTypingIndex, 1);
-        this.assistantTypingIndex = null;
-      }
-
-      for (const t of texts) {
-        this.messages.push({ 
-          text: t, 
-          isUser: false, 
-          timestamp: Date.now(),
-          files: responseFiles.length > 0 ? responseFiles : undefined,
-          liked: null
-        });
-      }
-
-      // Scroll after adding response
-      queueMicrotask(() => this.scrollToBottom());
-    }, _err => {
-      if (this.assistantTypingIndex != null) {
-        this.messages.splice(this.assistantTypingIndex, 1);
-        this.assistantTypingIndex = null;
-      }
-    });
-}
+      }, _err => {
+        if (this.assistantTypingIndex != null) {
+          this.messages.splice(this.assistantTypingIndex, 1);
+          this.assistantTypingIndex = null;
+        }
+      });
+  }
 
   async copyMessage(text: string) {
     await navigator.clipboard.writeText(text ?? '');
@@ -421,15 +460,15 @@ onSubmitQuery() {
     });
   }
 
-private scrollToBottom() {
-  const el = this.messagesContainer?.nativeElement;
-  if (el) {
-    // Use requestAnimationFrame for smoother scrolling
-    requestAnimationFrame(() => {
-      el.scrollTop = el.scrollHeight;
-    });
+  private scrollToBottom() {
+    const el = this.messagesContainer?.nativeElement;
+    if (el) {
+      // Use requestAnimationFrame for smoother scrolling
+      requestAnimationFrame(() => {
+        el.scrollTop = el.scrollHeight;
+      });
+    }
   }
-}
 
   private showToast(text: string, type: 'info'|'success'|'error' = 'success') {
     this.toastMsg = { text, type };

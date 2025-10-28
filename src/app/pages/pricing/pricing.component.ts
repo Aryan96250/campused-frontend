@@ -1,42 +1,21 @@
-<<<<<<< HEAD
-import { Component } from '@angular/core';
-=======
 import { Component, OnInit } from '@angular/core';
->>>>>>> 8eb66a8 (fixed the new changes)
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../header/header.component';
 import { NewlineToBreakPipe } from '../../helpers/pipe/NewlineToBreakPipe';
 import { FooterComponent } from '../footer/footer.component';
-<<<<<<< HEAD
-=======
 import { ApiService } from '../../helpers/services/apiService';
->>>>>>> 8eb66a8 (fixed the new changes)
 
 interface PricingPlan {
   name: string;
   description: string;
   price: string;
-<<<<<<< HEAD
-=======
   amount: number; // Amount in rupees
->>>>>>> 8eb66a8 (fixed the new changes)
   priceLabel: string;
   features: string[];
   buttonText: string;
   buttonClass: string;
   isPopular?: boolean;
 }
-<<<<<<< HEAD
-@Component({
-  selector: 'app-pricing',
-  standalone: true,
-  imports: [CommonModule,HeaderComponent,NewlineToBreakPipe,FooterComponent],
-  templateUrl: './pricing.component.html',
-  styleUrls: ['./pricing.component.scss']
-})
-export class PricingComponent {
- plans: PricingPlan[] = [
-=======
 
 declare var Razorpay: any;
 
@@ -49,17 +28,12 @@ declare var Razorpay: any;
 })
 export class PricingComponent implements OnInit {
   plans: PricingPlan[] = [
->>>>>>> 8eb66a8 (fixed the new changes)
     {
       name: 'Basic',
       description: 'Essential tools to manage finances, perfect for\nindividuals and startups.',
       price: '₹185',
-<<<<<<< HEAD
-      priceLabel: 'AI-powered notes  & summaries',
-=======
       amount: 185,
       priceLabel: 'AI-powered notes & summaries',
->>>>>>> 8eb66a8 (fixed the new changes)
       features: [
         '25k words input',
         '10k words output',
@@ -75,12 +49,8 @@ export class PricingComponent implements OnInit {
       name: 'Pro',
       description: 'Serious asptrants preparing for big\n exams.',
       price: '₹485',
-<<<<<<< HEAD
-      priceLabel: 'AI-powered notes  & summaries',
-=======
       amount: 485,
       priceLabel: 'AI-powered notes & summaries',
->>>>>>> 8eb66a8 (fixed the new changes)
       features: [
         '90k words input',
         '30k words output',
@@ -97,12 +67,8 @@ export class PricingComponent implements OnInit {
       name: 'Enterprise',
       description: 'Essential tools to manage finances, perfect for\n individuals and startups.',
       price: '₹855',
-<<<<<<< HEAD
-      priceLabel: 'AI-powered notes  & summaries',
-=======
       amount: 855,
       priceLabel: 'AI-powered notes & summaries',
->>>>>>> 8eb66a8 (fixed the new changes)
       features: [
         '100k words input',
         '55k words output',
@@ -116,12 +82,6 @@ export class PricingComponent implements OnInit {
     }
   ];
 
-<<<<<<< HEAD
-  onSelectPlan(planName: string): void {
-    console.log('Selected plan:', planName);
-  }
-}
-=======
   constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
@@ -222,4 +182,3 @@ export class PricingComponent implements OnInit {
     alert(`Payment failed: ${response.error.description}`);
   }
 }
->>>>>>> 8eb66a8 (fixed the new changes)

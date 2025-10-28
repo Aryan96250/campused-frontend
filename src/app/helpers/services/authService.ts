@@ -1,11 +1,5 @@
-<<<<<<< HEAD
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-=======
 import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
->>>>>>> 8eb66a8 (fixed the new changes)
 import { GoogleAuthService } from './googleService';
 
 interface AuthResponse {
@@ -23,12 +17,6 @@ export class AuthService {
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
   private tokenKey = 'access_token';
-<<<<<<< HEAD
-
-  constructor(private googleService:GoogleAuthService) {
-    // Initialize with token from localStorage if it exists
-    const token = localStorage.getItem(this.tokenKey);
-=======
   private userName = 'user_name';
   private injector: Injector;
 
@@ -36,7 +24,6 @@ export class AuthService {
     this.injector = injector;
 
     const token = this.getTokenFromStorage();
->>>>>>> 8eb66a8 (fixed the new changes)
     this.currentUserSubject = new BehaviorSubject<User | null>(
       token ? { token } : null
     );
@@ -48,14 +35,6 @@ export class AuthService {
   }
 
   public get token(): string | null {
-<<<<<<< HEAD
-    return localStorage.getItem(this.tokenKey);
-  }
-
-  setToken(response: AuthResponse): void {
-    if (response.access_token) {
-      localStorage.setItem(this.tokenKey, response.access_token);
-=======
     return this.getTokenFromStorage();
   }
 
@@ -71,17 +50,13 @@ export class AuthService {
       // if (rememberMe) sessionStorage.removeItem(this.tokenKey);
       // else localStorage.removeItem(this.tokenKey);
 
->>>>>>> 8eb66a8 (fixed the new changes)
       this.currentUserSubject.next({ token: response.access_token });
     }
   }
 
   clearToken(): void {
     localStorage.removeItem(this.tokenKey);
-<<<<<<< HEAD
-=======
     sessionStorage.removeItem(this.tokenKey);
->>>>>>> 8eb66a8 (fixed the new changes)
     this.currentUserSubject.next(null);
   }
 
@@ -90,12 +65,6 @@ export class AuthService {
   }
 
   logout(): void {
-<<<<<<< HEAD
-    this.clearToken();
-    this.googleService.signOut()
-  }
-}
-=======
     try {
       localStorage.clear();
       sessionStorage.clear();
@@ -108,4 +77,3 @@ export class AuthService {
     }
   }
 }
->>>>>>> 8eb66a8 (fixed the new changes)

@@ -1,14 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-<<<<<<< HEAD
-import { Router, RouterLink } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-=======
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../../helpers/services/apiService';
 import { ToastrService } from 'ngx-toastr';
->>>>>>> 8eb66a8 (fixed the new changes)
 
 @Component({
   selector: 'app-reset-password',
@@ -21,25 +16,15 @@ passwordForm: FormGroup;
   submitted = false;
   loading = false;
 
-<<<<<<< HEAD
-  constructor(private fb: FormBuilder,private router: Router) {
-=======
   constructor(private fb: FormBuilder,private router: Router,private apiService:ApiService
     ,private toastr:ToastrService,private route: ActivatedRoute,
   ) {
->>>>>>> 8eb66a8 (fixed the new changes)
     this.passwordForm = this.fb.group({
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
     });
   }
 
-<<<<<<< HEAD
-  onSubmit() {
-    this.submitted = true;
-
-    // Validation check
-=======
   token: string | null = null;
 
 ngOnInit(): void {
@@ -53,7 +38,6 @@ ngOnInit(): void {
 
   onSubmit() {
     this.submitted = true;
->>>>>>> 8eb66a8 (fixed the new changes)
     if (
       this.passwordForm.invalid ||
       this.passwordForm.value.password !== this.passwordForm.value.confirmPassword
@@ -62,14 +46,6 @@ ngOnInit(): void {
     }
 
     this.loading = true;
-<<<<<<< HEAD
-    setTimeout(() => {
-      console.log('New Password:', this.passwordForm.value.password);
-      this.loading = false;
-      this.router.navigate(['/login']);
-      // Navigate to login or dashboard here
-    }, 2000);
-=======
     const payload ={
       token:this.token,
       new_password:this.passwordForm.value.password,
@@ -90,6 +66,5 @@ ngOnInit(): void {
 
     nevigate(){
     this.router.navigate([''])
->>>>>>> 8eb66a8 (fixed the new changes)
   }
 }

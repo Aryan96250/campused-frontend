@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { FooterComponent } from '../footer/footer.component';
 import { HeaderComponent } from '../header/header.component';
 import { ChatStateService } from '../../helpers/services/chat.service';
+import { PendingChatService } from '../../helpers/services/PendingChat';
+import { AuthService } from '../../helpers/services/authService';
 
 @Component({
   selector: 'app-home',
@@ -87,7 +89,9 @@ export class HomeComponent {
 
   constructor(
     private router: Router,
-    private chatStateService: ChatStateService
+    private chatStateService: ChatStateService,
+    private pendingChatService:PendingChatService,
+    private authService:AuthService
   ) {}
 
   openFileDialog(): void {
@@ -132,14 +136,21 @@ export class HomeComponent {
     this.router.navigate(['/chat']);
   }
 
-  onSubmitQuery(): void {
-    if (this.userQuery.trim() || this.selectedFiles.length > 0) {
-      this.chatStateService.setInitialData(this.userQuery.trim(), this.selectedFiles);
-      this.router.navigate(['/chat']);
-      this.userQuery = '';
-      this.selectedFiles = [];
-    }
+onSubmitQuery(): void {
+  if (!(this.userQuery.trim() || this.selectedFiles.length > 0)) return;
+
+  if (!this.authService.isAuthenticated()) {
+    this.pendingChatService.set({ text: this.userQuery.trim(), files: this.selectedFiles });
+    this.router.navigate(['/login'], { queryParams: { returnUrl: '/chat' } });
+    return;
   }
+
+  this.chatStateService.setInitialData(this.userQuery.trim(), this.selectedFiles);
+  this.router.navigate(['/chat']);
+  this.userQuery = '';
+  this.selectedFiles = [];
+}
+
 
   onExpandInput(): void {
     console.log('Expand clicked');

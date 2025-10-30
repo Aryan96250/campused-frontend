@@ -30,26 +30,6 @@ interface FilePreview {
   isImage: boolean;
 }
 
-interface ChatMsg {
-  text: string;
-  isUser: boolean;
-  timestamp: number;
-  files?: MessageFile[];
-  liked?: boolean | null;
-}
-
-interface MessageFile {
-  name: string;
-  url: string;
-  type: string;
-}
-
-interface FilePreview {
-  file: File;
-  previewUrl?: string;
-  isImage: boolean;
-}
-
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
@@ -72,7 +52,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private hasInitialData = false;
   submitTure = true;
-  private isInitializing = true;  // Flag to handle params only once
+  private isInitializing = true;
+  private hasProcessedInitialData = false;
+  private isRefreshingChannels = false; // NEW: Prevent multiple simultaneous refreshes
 
   @ViewChild('filePicker') filePicker!: ElementRef<HTMLInputElement>;
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
@@ -86,7 +68,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscribeToInitialData();
-    // Load channels first, then handle params
     this.refreshChannels().then(() => {
       this.route.params.subscribe(params => {
         if (this.isInitializing) {
@@ -94,7 +75,7 @@ export class ChatComponent implements OnInit, OnDestroy {
           const channelId = params['channelId'];
           if (channelId && this.channels.some(c => c.id === channelId)) {
             this.loadChannel(channelId);
-          } else {
+          } else if (!this.hasProcessedInitialData) {
             this.createNewChat();
           }
         }
@@ -106,7 +87,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.chatStateService.initialData$
       .pipe(takeUntil(this.destroy$))
       .subscribe((data:any) => {
-        if (data && (data.query.trim() || data.files.length > 0)) {
+        if (data && (data.query.trim() || data.files.length > 0) && !this.hasProcessedInitialData) {
+          this.hasProcessedInitialData = true;
           this.hasInitialData = true;
           this.userQuery = data.query;
           this.pendingFiles = data.files;
@@ -121,10 +103,24 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private async refreshChannels(): Promise<void> {
+    // Prevent multiple simultaneous refresh calls
+    if (this.isRefreshingChannels) {
+      return Promise.resolve();
+    }
+
+    this.isRefreshingChannels = true;
+    
     return new Promise((resolve) => {
-      this.api.listChannels().subscribe((list: any) => {
-        this.channels = list ?? [];
-        resolve();
+      this.api.listChannels().subscribe({
+        next: (list: any) => {
+          this.channels = list ?? [];
+          this.isRefreshingChannels = false;
+          resolve();
+        },
+        error: () => {
+          this.isRefreshingChannels = false;
+          resolve();
+        }
       });
     });
   }
@@ -134,7 +130,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.api.getChannel(id).subscribe((payload: any) => {
       const conv = payload?.conversation ?? [];
       this.messages = conv
-        .filter((m: any) => m?.role !== 'system') // Exclude system messages
+        .filter((m: any) => m?.role !== 'system')
         .map((m: any) => ({
           text: m?.content ?? m?.text ?? '',
           isUser: m?.role === 'user',
@@ -266,7 +262,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     const q = (this.userQuery ?? '').trim();
     if (!q && this.pendingFiles.length === 0) return;
 
-    // Store files for the user message
     const userFiles: MessageFile[] = this.pendingFiles.map(file => ({
       name: file.name,
       url: URL.createObjectURL(file),
@@ -276,7 +271,6 @@ export class ChatComponent implements OnInit, OnDestroy {
             file.name.endsWith('.xls') || file.name.endsWith('.xlsx') ? 'spreadsheet' : 'file'
     }));
 
-    // Add user message with files
     if (q || userFiles.length > 0) {
       this.messages.push({ 
         text: q || '(File upload)', 
@@ -286,21 +280,19 @@ export class ChatComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Add typing indicator
     this.assistantTypingIndex = this.messages.push({
       text: 'typing',
       isUser: false,
       timestamp: Date.now(),
     }) - 1;
 
-    // Scroll after adding messages
     queueMicrotask(() => this.scrollToBottom());
 
     this.isProcessing = true;
     const files = this.pendingFiles.slice();
-
-    // Clear input and files immediately
     const queryToSend = q;
+    const wasNewChat = !this.activeChannelId;
+
     this.userQuery = '';
     this.pendingFiles = [];
     this.clearFilePreviews();
@@ -309,86 +301,117 @@ export class ChatComponent implements OnInit, OnDestroy {
       ? this.api.sendMessageMultipart(this.activeChannelId, queryToSend, files)
       : this.api.sendFirstMessage(queryToSend, files);
     
-    if(this.activeChannelId){
-      this.refreshChannels();
-    }
-    
     send$
       .pipe(
         finalize(() => {
           this.isProcessing = false;
-          // Final scroll after everything is done
           setTimeout(() => this.scrollToBottom(), 100);
         }),
         takeUntil(this.destroy$)
       )
       .subscribe((res: any) => {
-        if (!this.activeChannelId && res?.channel_id) {
+        // Handle new channel creation
+        if (wasNewChat && res?.channel_id) {
           this.activeChannelId = res.channel_id;
           this.router.navigate(['/chat', res.channel_id], { replaceUrl: true });
-          this.channels.unshift({ id: res.channel_id, title: res?.title || 'new chat' });
-        }
-
-        const texts: string[] = [];
-        const responseFiles: MessageFile[] = [];
-        
-        if (Array.isArray(res?.messages)) {
-          for (const m of res.messages) {
-            const t = m?.content ?? m?.text ?? m?.message ?? '';
-            if (t) texts.push(t);
-            if (m?.files) responseFiles.push(...this.parseMessageFiles(m));
-          }
-        } else if (res?.message || res?.content || res?.text) {
-          texts.push(res.message ?? res.content ?? res.text);
-          if (res?.files) responseFiles.push(...this.parseMessageFiles(res));
-        } else if (res?.data?.content || res?.data?.text || res.data) {
-          texts.push(res.data.content ?? res.data.text);
-          if (res?.data?.files) responseFiles.push(...this.parseMessageFiles(res.data));
-        } else if (Array.isArray(res?.conversation)) {
-          this.messages = res.conversation.filter((m: any) => m?.role !== 'system').map((m: any) => ({
-            text: m.role === "system" ? '' : m?.content ?? m?.text ?? '',
-            isUser: m?.role === 'user',
-            timestamp: Date.now(),
-            files: this.parseMessageFiles(m),
-            liked: m?.liked ?? null
-          }));
-          this.assistantTypingIndex = null;
-          queueMicrotask(() => this.scrollToBottom());
-          return;
-        }
-
-        if (this.assistantTypingIndex != null && texts.length) {
-          this.messages[this.assistantTypingIndex] = {
-            text: texts.shift()!,
-            isUser: false,
-            timestamp: Date.now(),
-            files: responseFiles.length > 0 ? responseFiles : undefined,
-            liked: null
+          
+          // Add to channels list immediately with the response title
+          const newChannel = { 
+            id: res.channel_id, 
+            title: res?.title || res?.channel_title || 'New Chat' 
           };
-          this.assistantTypingIndex = null;
-        } else if (this.assistantTypingIndex != null) {
-          this.messages.splice(this.assistantTypingIndex, 1);
-          this.assistantTypingIndex = null;
+          
+          // Check if channel already exists to avoid duplicates
+          if (!this.channels.some(c => c.id === newChannel.id)) {
+            this.channels.unshift(newChannel);
+          }
+          
+          // Delay the refresh to allow backend to fully create the channel
+          setTimeout(() => {
+            this.refreshChannels();
+          }, 500);
         }
 
-        for (const t of texts) {
-          this.messages.push({ 
-            text: t, 
-            isUser: false,
-            timestamp: Date.now(),
-            files: responseFiles.length > 0 ? responseFiles : undefined,
-            liked: null
-          });
-        }
-
-        // Scroll after adding response
-        queueMicrotask(() => this.scrollToBottom());
+        // Process response - handle different response structures
+        this.processApiResponse(res, wasNewChat);
       }, _err => {
         if (this.assistantTypingIndex != null) {
           this.messages.splice(this.assistantTypingIndex, 1);
           this.assistantTypingIndex = null;
         }
       });
+  }
+
+  private processApiResponse(res: any, wasNewChat: boolean) {
+    const texts: string[] = [];
+    const responseFiles: MessageFile[] = [];
+    
+    // Check if response contains full conversation array
+    if (Array.isArray(res?.conversation) && res.conversation.length > 0) {
+      const filteredConversation = res.conversation.filter((m: any) => m?.role !== 'system');
+      
+      // Only do full replacement for initial load or if conversation is significantly different
+      const shouldReplaceAll = wasNewChat || 
+                               filteredConversation.length !== this.messages.length ||
+                               this.assistantTypingIndex === null;
+      
+      if (shouldReplaceAll) {
+        this.messages = filteredConversation.map((m: any) => ({
+          text: m.role === "system" ? '' : m?.content ?? m?.text ?? '',
+          isUser: m?.role === 'user',
+          timestamp: Date.now(),
+          files: this.parseMessageFiles(m),
+          liked: m?.liked ?? null
+        }));
+        this.assistantTypingIndex = null;
+        queueMicrotask(() => this.scrollToBottom());
+        return;
+      }
+    }
+    
+    // Parse individual message responses
+    if (Array.isArray(res?.messages)) {
+      for (const m of res.messages) {
+        const t = m?.content ?? m?.text ?? m?.message ?? '';
+        if (t) texts.push(t);
+        if (m?.files) responseFiles.push(...this.parseMessageFiles(m));
+      }
+    } else if (res?.message || res?.content || res?.text) {
+      texts.push(res.message ?? res.content ?? res.text);
+      if (res?.files) responseFiles.push(...this.parseMessageFiles(res));
+    } else if (res?.data?.content || res?.data?.text) {
+      texts.push(res.data.content ?? res.data.text);
+      if (res?.data?.files) responseFiles.push(...this.parseMessageFiles(res.data));
+    }
+
+    // Update or remove typing indicator
+    if (this.assistantTypingIndex != null) {
+      if (texts.length > 0) {
+        this.messages[this.assistantTypingIndex] = {
+          text: texts.shift()!,
+          isUser: false,
+          timestamp: Date.now(),
+          files: responseFiles.length > 0 ? responseFiles : undefined,
+          liked: null
+        };
+      } else {
+        this.messages.splice(this.assistantTypingIndex, 1);
+      }
+      this.assistantTypingIndex = null;
+    }
+
+    // Add any additional messages
+    for (const t of texts) {
+      this.messages.push({ 
+        text: t, 
+        isUser: false,
+        timestamp: Date.now(),
+        files: responseFiles.length > 0 ? responseFiles : undefined,
+        liked: null
+      });
+    }
+
+    queueMicrotask(() => this.scrollToBottom());
   }
 
   async copyMessage(text: string) {
@@ -463,7 +486,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   private scrollToBottom() {
     const el = this.messagesContainer?.nativeElement;
     if (el) {
-      // Use requestAnimationFrame for smoother scrolling
       requestAnimationFrame(() => {
         el.scrollTop = el.scrollHeight;
       });

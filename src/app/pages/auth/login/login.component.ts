@@ -1,13 +1,15 @@
 import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router'; // Added Router
+import { ActivatedRoute, Router, RouterLink } from '@angular/router'; // Added Router
 import { ApiService } from '../../../helpers/services/apiService';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../helpers/services/authService';
 import { GoogleAuthService } from '../../../helpers/services/googleService';
 import { takeUntil } from 'rxjs/operators'; // For unsubscribe if needed
 import { Subject } from 'rxjs';
+import { PendingChatService } from '../../../helpers/services/PendingChat';
+import { ChatStateService } from '../../../helpers/services/chat.service';
 
 @Component({
   selector: 'app-login',
@@ -29,7 +31,10 @@ export class LoginComponent implements OnDestroy {
     private toastr: ToastrService,
     private auth: AuthService,
     private google: GoogleAuthService,
-    private router: Router // Injected for navigation
+    private router: Router, // Injected for navigation,
+    private route: ActivatedRoute,
+    private pendingChatService:PendingChatService,
+    private chatStateService:ChatStateService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -50,6 +55,16 @@ export class LoginComponent implements OnDestroy {
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
+
+  private completeLoginFlow(): void {
+  const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+  const pending = this.pendingChatService.get();
+  if (pending && returnUrl === '/chat') {
+    this.chatStateService.setInitialData(pending.text, pending.files);
+    this.pendingChatService.clear();
+  }
+  this.router.navigateByUrl(returnUrl);
+}
 
   onSubmit(): void {
     this.submitted = true;
@@ -78,7 +93,8 @@ export class LoginComponent implements OnDestroy {
         this.auth.setToken(response); // Pass rememberMe flag to AuthService
         localStorage.setItem('userName',response.name)
         this.toastr.success(response.message || 'Login successful', 'Success');
-        this.router.navigate(['/chat']);
+            this.completeLoginFlow();
+        // this.router.navigate(['/chat']);
       },
       error: (error: any) => {
         this.loading = false;

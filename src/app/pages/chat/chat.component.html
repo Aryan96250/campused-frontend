@@ -1,4 +1,4 @@
-<div class="page">
+<!-- <div class="page"> -->
   <app-header>
     <!-- Mobile sidebar toggle -->
   </app-header>
@@ -16,7 +16,7 @@
   </button>
 
   <div class="chat-container">
-    <div class="container-fluid h-100">
+    <div class="container-fluid">
       <div class="row h-100 g-0">
 
         <!-- Desktop sidebar (unchanged) -->
@@ -215,68 +215,120 @@
                 </div>
               </ng-template>
             </div>
-
-            <div class="input-area">
-              <div class="file-previews" *ngIf="filePreviews.length > 0">
-                <div *ngFor="let preview of filePreviews; let i = index" class="file-preview-item">
-                  <button class="remove-preview" (click)="removeFilePreview(i)" title="Remove" *ngIf="!isProcessing">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-
-                  <div class="preview-content" *ngIf="preview.isImage && preview.previewUrl">
-                    <img [src]="preview.previewUrl" [alt]="preview.file.name" />
-                  </div>
-
-                  <div class="preview-content file-icon" *ngIf="!preview.isImage">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                      <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                      <polyline points="13 2 13 9 20 9"></polyline>
-                    </svg>
-                  </div>
-
-                  <div class="file-name">{{ preview.file.name }}</div>
-                </div>
-              </div>
-
-              <form class="input-form" (ngSubmit)="onSubmitQuery()">
-                <div class="input-wrapper">
-                  <button type="button" class="attach-btn" (click)="openFileDialog()" [disabled]="isProcessing" title="Attach files">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                    </svg>
-                  </button>
-
-                  <textarea [(ngModel)]="userQuery" name="userQuery" class="message-input"
-                            placeholder="Type your message..." rows="1"
-                            [disabled]="isProcessing" (keydown)="handleEnter($event)"></textarea>
-
-                  <button type="submit" class="send-btn"
-                          [disabled]="isProcessing || (!userQuery.trim() && pendingFiles.length === 0)"
-                          title="Send message">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!isProcessing">
-                      <line x1="22" y1="2" x2="11" y2="13"></line>
-                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                    </svg>
-                    <div class="spinner-border spinner-border-sm" role="status" *ngIf="isProcessing">
-                      <span class="visually-hidden">Sending...</span>
+                 <div class="input-area desktops">
+                <div class="file-previews" *ngIf="filePreviews.length > 0">
+                  <div *ngFor="let preview of filePreviews; let i = index" class="file-preview-item">
+                    <button class="remove-preview" (click)="removeFilePreview(i)" title="Remove" *ngIf="!isProcessing">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+  
+                    <div class="preview-content" *ngIf="preview.isImage && preview.previewUrl">
+                      <img [src]="preview.previewUrl" [alt]="preview.file.name" />
                     </div>
-                  </button>
-
-                  <input #filePicker type="file" multiple hidden (change)="onFilesSelected($event)" />
+  
+                    <div class="preview-content file-icon" *ngIf="!preview.isImage">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <polyline points="13 2 13 9 20 9"></polyline>
+                      </svg>
+                    </div>
+  
+                    <div class="file-name">{{ preview.file.name }}</div>
+                  </div>
                 </div>
-              </form>
-            </div>
-
+  
+                <form class="input-form" (ngSubmit)="onSubmitQuery()">
+                  <div class="input-wrapper">
+                    <button type="button" class="attach-btn" (click)="openFileDialog()" [disabled]="isProcessing" title="Attach files">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                      </svg>
+                    </button>
+  
+                    <textarea [(ngModel)]="userQuery" name="userQuery" class="message-input"
+                              placeholder="Type your message..." rows="1"
+                              [disabled]="isProcessing" (keydown)="handleEnter($event)"></textarea>
+  
+                    <button type="submit" class="send-btn"
+                            [disabled]="isProcessing || (!userQuery.trim() && pendingFiles.length === 0)"
+                            title="Send message">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!isProcessing">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                      </svg>
+                      <div class="spinner-border spinner-border-sm" role="status" *ngIf="isProcessing">
+                        <span class="visually-hidden">Sending...</span>
+                      </div>
+                    </button>
+  
+                    <input #filePicker type="file" multiple hidden (change)="onFilesSelected($event)" />
+                  </div>
+                </form>
+              </div>
           </div>
         </div>
-
+        
       </div>
     </div>
   </div>
-
+  
+  
+              <div class="input-area mobiles">
+                <div class="file-previews" *ngIf="filePreviews.length > 0">
+                  <div *ngFor="let preview of filePreviews; let i = index" class="file-preview-item">
+                    <button class="remove-preview" (click)="removeFilePreview(i)" title="Remove" *ngIf="!isProcessing">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+  
+                    <div class="preview-content" *ngIf="preview.isImage && preview.previewUrl">
+                      <img [src]="preview.previewUrl" [alt]="preview.file.name" />
+                    </div>
+  
+                    <div class="preview-content file-icon" *ngIf="!preview.isImage">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <polyline points="13 2 13 9 20 9"></polyline>
+                      </svg>
+                    </div>
+  
+                    <div class="file-name">{{ preview.file.name }}</div>
+                  </div>
+                </div>
+  
+                <form class="input-form" (ngSubmit)="onSubmitQuery()">
+                  <div class="input-wrapper">
+                    <button type="button" class="attach-btn" (click)="openFileDialog()" [disabled]="isProcessing" title="Attach files">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                      </svg>
+                    </button>
+  
+                    <textarea [(ngModel)]="userQuery" name="userQuery" class="message-input"
+                              placeholder="Type your message..." rows="1"
+                              [disabled]="isProcessing" (keydown)="handleEnter($event)"></textarea>
+  
+                    <button type="submit" class="send-btn"
+                            [disabled]="isProcessing || (!userQuery.trim() && pendingFiles.length === 0)"
+                            title="Send message">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!isProcessing">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                      </svg>
+                      <div class="spinner-border spinner-border-sm" role="status" *ngIf="isProcessing">
+                        <span class="visually-hidden">Sending...</span>
+                      </div>
+                    </button>
+  
+                    <input #filePicker type="file" multiple hidden (change)="onFilesSelected($event)" />
+                  </div>
+                </form>
+              </div>
   <div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div class="toast"
          [class.show]="toastMsg"
@@ -291,4 +343,4 @@
   </div>
 
   <!-- <app-footer></app-footer> -->
-</div>
+<!-- </div> -->

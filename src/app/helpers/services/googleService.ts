@@ -5,6 +5,8 @@ import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './authService';
 import { Router } from '@angular/router';
+import { PendingChatService } from './PendingChat';
+import { ChatStateService } from './chat.service';
 
 declare const google: any;
 
@@ -18,7 +20,9 @@ export class GoogleAuthService {
     injector: Injector,
     private apiService: ApiService,
     private toastr: ToastrService,
-    private router:Router
+    private router:Router,
+    private PendingChatService:PendingChatService,
+    private ChatStateService:ChatStateService
   ) {
     this.injector = injector;
     this.loadGoogleScript();
@@ -91,7 +95,6 @@ export class GoogleAuthService {
 
   private handleGoogleResponse(response: any): void {
     const credential = response?.credential;
-    console.log(response,'wewe')
     if (!credential) {
       this.toastr.warning('Google login was cancelled.', 'Info');
       return;
@@ -107,7 +110,13 @@ export class GoogleAuthService {
         const authService = this.injector.get(AuthService);
         localStorage.setItem('userName',res.name)
         authService.setToken(res); // Adjust if response has 'access_token'
-        this.router.navigate(['/chat'])
+         const returnUrl = new URL(window.location.href).searchParams.get('returnUrl') || '/';
+      const pending = this.injector.get(PendingChatService).get();
+      if (pending && returnUrl === '/chat') {
+        this.injector.get(ChatStateService).setInitialData(pending.text, pending.files);
+        this.injector.get(PendingChatService).clear();
+      }
+      this.router.navigateByUrl(returnUrl);
       },
       error: (err) => {
         console.error('Google auth API error:', err); // Log for CORS/network debugging

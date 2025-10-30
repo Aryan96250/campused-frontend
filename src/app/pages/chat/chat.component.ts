@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 
 interface ChatMsg {
   text: string;
@@ -55,8 +56,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   private isInitializing = true;
   private hasProcessedInitialData = false;
   private isRefreshingChannels = false;
-  private pendingChannelRefresh = false; // NEW: Flag to defer channel refresh
-  private channelsRefreshed = false; // NEW: Flag to prevent multiple refresh calls
+  private pendingChannelRefresh = false; 
+  private channelsRefreshed = false; 
 
   @ViewChild('filePicker') filePicker!: ElementRef<HTMLInputElement>;
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
@@ -65,12 +66,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     private api: ApiService,
     private chatStateService: ChatStateService,
     private route: ActivatedRoute,
-    private router: Router 
+    private router: Router ,
+    private location: Location 
   ) {}
 
   ngOnInit() {
     this.subscribeToInitialData();
-    // Prevent multiple refresh calls
     if (!this.channelsRefreshed) {
       this.channelsRefreshed = true;
       this.refreshChannels().then(() => {
@@ -81,8 +82,6 @@ export class ChatComponent implements OnInit, OnDestroy {
             if (channelId && this.channels.some(c => c.id === channelId)) {
               this.loadChannel(channelId);
             } else if (!this.hasProcessedInitialData) {
-              // Don't create new chat here if we're processing initial data
-              // The subscribeToInitialData will handle it
               if (!this.hasInitialData) {
                 this.createNewChat();
               }
@@ -104,8 +103,6 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.pendingFiles = data.files;
           this.generateFilePreviews();
           
-          // Don't refresh channels before sending initial message
-          // This prevents the UI flicker
           queueMicrotask(() => {
             this.onSubmitQuery();
             this.chatStateService.clearInitialData();
@@ -115,7 +112,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private async refreshChannels(): Promise<void> {
-    // Prevent multiple simultaneous refresh calls
     if (this.isRefreshingChannels) {
       this.pendingChannelRefresh = true;
       return Promise.resolve();
@@ -129,8 +125,6 @@ export class ChatComponent implements OnInit, OnDestroy {
         next: (list: any) => {
           this.channels = list ?? [];
           this.isRefreshingChannels = false;
-          
-          // If there was a pending refresh request, execute it now
           if (this.pendingChannelRefresh) {
             this.pendingChannelRefresh = false;
             setTimeout(() => this.refreshChannels(), 100);
@@ -331,28 +325,19 @@ export class ChatComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe((res: any) => {
-        // Debug log to track response
         console.log('API Response:', res);
-        
-        // Handle new channel creation
         if (wasNewChat && res?.channel_id) {
           this.activeChannelId = res.channel_id;
           
-          // Add to channels list immediately with the response title
           const newChannel = { 
             id: res.channel_id, 
             title: res?.title || res?.channel_title || 'New Chat' 
           };
-          
-          // Check if channel already exists to avoid duplicates
           if (!this.channels.some(c => c.id === newChannel.id)) {
             this.channels.unshift(newChannel);
           }
           
-          // Update URL without reloading
-          this.router.navigate(['/chat', res.channel_id], { replaceUrl: true });
-          
-          // Process the response
+          this.location.replaceState(`/chat/${res.channel_id}`);
           this.processApiResponse(res, wasNewChat);
           
           // REMOVE: No need to refresh channels here, as it's already added with the correct title
@@ -360,7 +345,6 @@ export class ChatComponent implements OnInit, OnDestroy {
           //   this.refreshChannels();
           // }, 1000);
         } else {
-          // For existing chats, process response immediately
           this.processApiResponse(res, wasNewChat);
         }
       }, _err => {
@@ -376,14 +360,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   private processApiResponse(res: any, wasNewChat: boolean) {
     const texts: string[] = [];
     const responseFiles: MessageFile[] = [];
-    
-    // Check if response contains full conversation array
     if (Array.isArray(res?.conversation) && res.conversation.length > 0) {
       const filteredConversation = res.conversation.filter((m: any) => m?.role !== 'system');
-      
-      // For new chats, NEVER replace messages to avoid flicker – always process incrementally
       if (wasNewChat) {
-        // Extract only the assistant's response (last assistant message)
         const lastAssistantMsg = filteredConversation
           .filter((m: any) => m?.role === 'assistant')
           .pop();
@@ -395,18 +374,14 @@ export class ChatComponent implements OnInit, OnDestroy {
           }
         }
       } else {
-        // For existing chats, check if we should replace all messages
         const currentNonTypingCount = this.messages.filter(m => m.text !== 'typing').length;
         const shouldReplaceAll = filteredConversation.length > currentNonTypingCount;
         
         if (shouldReplaceAll) {
-          // Remove typing indicator if exists
           if (this.assistantTypingIndex !== null) {
             this.messages.splice(this.assistantTypingIndex, 1);
             this.assistantTypingIndex = null;
           }
-          
-          // Replace with full conversation
           this.messages = filteredConversation.map((m: any) => ({
             text: m?.content ?? m?.text ?? '',
             isUser: m?.role === 'user',
@@ -420,7 +395,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     }
     
-    // Parse individual message responses if we haven't extracted from conversation
     if (texts.length === 0) {
       if (Array.isArray(res?.messages)) {
         for (const m of res.messages) {
@@ -436,8 +410,6 @@ export class ChatComponent implements OnInit, OnDestroy {
         if (res?.data?.files) responseFiles.push(...this.parseMessageFiles(res.data));
       }
     }
-
-    // Update or remove typing indicator
     if (this.assistantTypingIndex != null) {
       if (texts.length > 0) {
         this.messages[this.assistantTypingIndex] = {
@@ -453,7 +425,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.assistantTypingIndex = null;
     }
 
-    // Add any additional messages
     for (const t of texts) {
       this.messages.push({ 
         text: t, 

@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { ApiService } from '../../helpers/services/apiService';
 import { ChatStateService } from '../../helpers/services/chat.service';
+import { TokenService } from '../../helpers/services/token.service';
 import { finalize } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -57,7 +58,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   private hasProcessedInitialData = false;
   private isRefreshingChannels = false;
   private pendingChannelRefresh = false; 
-  private channelsRefreshed = false; 
+  private channelsRefreshed = false;
+  
+  // Token info
+  remainingTokens: number = 0;
 
   @ViewChild('filePicker') filePicker!: ElementRef<HTMLInputElement>;
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
@@ -65,13 +69,16 @@ export class ChatComponent implements OnInit, OnDestroy {
   constructor(
     private api: ApiService,
     private chatStateService: ChatStateService,
+    private tokenService: TokenService,
     private route: ActivatedRoute,
-    private router: Router ,
+    private router: Router,
     private location: Location 
   ) {}
 
   ngOnInit() {
     this.subscribeToInitialData();
+    this.subscribeToTokenUpdates();
+    
     if (!this.channelsRefreshed) {
       this.channelsRefreshed = true;
       this.refreshChannels().then(() => {
@@ -90,6 +97,16 @@ export class ChatComponent implements OnInit, OnDestroy {
         });
       });
     }
+  }
+
+  private subscribeToTokenUpdates(): void {
+    this.tokenService.tokenInfo$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(tokenInfo => {
+        if (tokenInfo) {
+          this.remainingTokens = tokenInfo.remaining_tokens;
+        }
+      });
   }
 
   private subscribeToInitialData(): void {
@@ -125,6 +142,10 @@ export class ChatComponent implements OnInit, OnDestroy {
         next: (list: any) => {
           this.channels = list ?? [];
           this.isRefreshingChannels = false;
+          
+          // Fetch token credits only when loading channel list
+          this.fetchTokenCredits();
+          
           if (this.pendingChannelRefresh) {
             this.pendingChannelRefresh = false;
             setTimeout(() => this.refreshChannels(), 100);
@@ -137,6 +158,24 @@ export class ChatComponent implements OnInit, OnDestroy {
           resolve();
         }
       });
+    });
+  }
+
+  private fetchTokenCredits(): void {
+    this.api.getUserCredits().subscribe({
+      next: (response: any) => {
+        if (response) {
+          this.tokenService.updateFullInfo({
+            total_tokens: response.total_tokens || 0,
+            used_tokens: response.used_tokens || 0,
+            remaining_tokens: response.remaining_tokens || 0,
+            last_updated: new Date().toISOString()
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching token credits:', error);
+      }
     });
   }
 
@@ -326,6 +365,9 @@ export class ChatComponent implements OnInit, OnDestroy {
       )
       .subscribe((res: any) => {
         console.log('API Response:', res);
+        
+        // Token will be automatically updated by the interceptor
+        
         if (wasNewChat && res?.channel_id) {
           this.activeChannelId = res.channel_id;
           
@@ -339,11 +381,6 @@ export class ChatComponent implements OnInit, OnDestroy {
           
           this.location.replaceState(`/chat/${res.channel_id}`);
           this.processApiResponse(res, wasNewChat);
-          
-          // REMOVE: No need to refresh channels here, as it's already added with the correct title
-          // setTimeout(() => {
-          //   this.refreshChannels();
-          // }, 1000);
         } else {
           this.processApiResponse(res, wasNewChat);
         }

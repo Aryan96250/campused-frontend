@@ -163,7 +163,7 @@
 
                     <ng-template #messageContent>
                       <div class="message-text">{{ msg.text }}</div>
-                      <div class="message-time">{{ formatTimestamp(msg.timestamp) }}</div>
+                      <!-- <div class="message-time">{{ formatTimestamp(msg.timestamp) }}</div> -->
 
                       <div class="message-actions" *ngIf="!msg.isUser">
                         <button class="action-btn" title="Copy" (click)="copyMessage(msg.text)">

@@ -22,10 +22,28 @@
 
     <!-- Desktop CTA -->
     <div class="nav__cta" *ngIf="showButtons" dropdown>
+      <!-- Token Display -->
+      <div class="token-display" *ngIf="totalTokens > 0">
+        <div class="token-info">
+          <span class="token-icon">⚡</span>
+          <span class="token-count">{{ formatTokens(remainingTokens) }}</span>
+        </div>
+        <div class="token-bar">
+          <div class="token-bar-fill" [style.width.%]="getTokenPercentage()"></div>
+        </div>
+      </div>
+
       <p class="free-">{{userName || 'John Doe'}}</p>
       <div class="user-icon" dropdownToggle>
         <span><i class="fa-solid fa-user"></i></span>
         <ul *dropdownMenu class="dropdown-menu">
+          <li *ngIf="totalTokens > 0" class="dropdown-header">
+            <div class="token-detail">
+              <small>Remaining Tokens</small>
+              <strong>{{ remainingTokens.toLocaleString() }} / {{ totalTokens.toLocaleString() }}</strong>
+            </div>
+          </li>
+          <li><hr class="dropdown-divider" *ngIf="totalTokens > 0"></li>
           <li><a class="dropdown-item" href="#" (click)="logout()">Logout</a></li>
         </ul>
       </div>
@@ -61,6 +79,22 @@
     </nav>
 
     <div class="mobile-nav__cta" *ngIf="showButtons">
+      <!-- Mobile Token Display -->
+      <div class="mobile-token-display" *ngIf="totalTokens > 0">
+        <div class="token-card">
+          <div class="token-header">
+            <span class="token-icon">⚡</span>
+            <span class="token-label">Available Tokens</span>
+          </div>
+          <div class="token-value">
+            {{ remainingTokens.toLocaleString() }} <span class="token-total">/ {{ totalTokens.toLocaleString() }}</span>
+          </div>
+          <div class="token-bar">
+            <div class="token-bar-fill" [style.width.%]="getTokenPercentage()"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="mobile-user-info">
         <div class="user-icon">
           <span><i class="fa-solid fa-user"></i></span>

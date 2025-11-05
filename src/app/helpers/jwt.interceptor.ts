@@ -3,10 +3,12 @@ import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { AuthService } from './services/authService';
 
 export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const toastr = inject(ToastrService);
+  const authService = inject(AuthService);
 
   const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
 
@@ -32,6 +34,7 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
 
       if (error.status === 401) {
         localStorage.removeItem('access_token');
+        authService.logout();
         router.navigate(['/login']);
         toastr.error('Session expired. Please login again.', 'Unauthorized');
       } else {

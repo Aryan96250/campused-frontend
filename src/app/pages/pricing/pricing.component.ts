@@ -4,13 +4,17 @@ import { HeaderComponent } from '../header/header.component';
 import { NewlineToBreakPipe } from '../../helpers/pipe/NewlineToBreakPipe';
 import { FooterComponent } from '../footer/footer.component';
 import { ApiService } from '../../helpers/services/apiService';
+import { ToastrService } from 'ngx-toastr';
+import { TokenService } from '../../helpers/services/token.service';
 
 interface PricingPlan {
+  id: string;
   name: string;
   description: string;
   price: string;
   amount: number; // Amount in rupees
   priceLabel: string;
+  token_limit: number;
   features: string[];
   buttonText: string;
   buttonClass: string;
@@ -27,66 +31,69 @@ declare var Razorpay: any;
   styleUrls: ['./pricing.component.scss']
 })
 export class PricingComponent implements OnInit {
-  plans: PricingPlan[] = [
-    {
-      name: 'Basic',
-      description: 'Essential tools to manage finances, perfect for\nindividuals and startups.',
-      price: '₹185',
-      amount: 185,
-      priceLabel: 'AI-powered notes & summaries',
-      features: [
-        '25k words input',
-        '10k words output',
-        'Unlimited PDF File Download',
-        'Upload & analyze 1 study image',
-        'Premium Ai Results',
-        'Better Results form \'free to GPT-5\''
-      ],
-      buttonText: 'Start with Starter Plan',
-      buttonClass: 'btn-outline'
-    },
-    {
-      name: 'Pro',
-      description: 'Serious asptrants preparing for big\n exams.',
-      price: '₹485',
-      amount: 485,
-      priceLabel: 'AI-powered notes & summaries',
-      features: [
-        '90k words input',
-        '30k words output',
-        'Unlimited PDF File Download',
-        'Premium Ai Results',
-        'Upload & analyze 2 study image',
-        'Better Results form \'free to GPT-5\''
-      ],
-      buttonText: 'Upgrade to Pro',
-      buttonClass: 'btn-primary',
-      isPopular: true
-    },
-    {
-      name: 'Enterprise',
-      description: 'Essential tools to manage finances, perfect for\n individuals and startups.',
-      price: '₹855',
-      amount: 855,
-      priceLabel: 'AI-powered notes & summaries',
-      features: [
-        '100k words input',
-        '55k words output',
-        'Unlimited PDF File Download',
-        'Premium Ai Results',
-        'Upload & analyze 4 study image',
-        'Better Results form \'free to GPT-5\''
-      ],
-      buttonText: 'Upgrade to Premium',
-      buttonClass: 'btn-outline'
-    }
-  ];
+  plans: PricingPlan[] = [];
+  isLoading: boolean = true;
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService,private toastr: ToastrService,private tokenService: TokenService,
+) {}
 
   ngOnInit(): void {
-    // Load Razorpay script
+    this.getPlans();
     this.loadRazorpayScript();
+  }
+
+  getPlans(): void {
+    this.isLoading = true;
+    this.apiService.getSubscriptionPlan().subscribe({
+      next: (response) => {
+        console.log('Fetched plans from backend:', response);
+        this.plans = this.mapApiResponseToPlans(response);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error fetching plans:', error);
+        this.isLoading = false;
+        alert('Failed to load pricing plans. Please refresh the page.');
+      }
+    });   
+  }
+
+  mapApiResponseToPlans(apiPlans: any[]): PricingPlan[] {
+    return apiPlans.map((plan, index) => {
+      const isPro = plan.name.toLowerCase() === 'pro';
+      
+      return {
+        id: plan.id,
+        name: this.capitalizeFirstLetter(plan.name),
+        description: plan.description,
+        price: `₹${plan.price_inr}`,
+        amount: plan.price_inr,
+        priceLabel: 'AI-powered notes & summaries',
+        token_limit: plan.token_limit,
+        features: plan.features,
+        buttonText: this.getButtonText(plan.name),
+        buttonClass: isPro ? 'btn-primary' : 'btn-outline',
+        isPopular: isPro
+      };
+    });
+  }
+
+  capitalizeFirstLetter(text: string): string {
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  }
+
+  getButtonText(planName: string): string {
+    const name = planName.toLowerCase();
+    switch(name) {
+      case 'basic':
+        return 'Start with Basic Plan';
+      case 'pro':
+        return 'Upgrade to Pro';
+      case 'enterprise':
+        return 'Upgrade to Enterprise';
+      default:
+        return `Choose ${this.capitalizeFirstLetter(planName)}`;
+    }
   }
 
   loadRazorpayScript(): void {
@@ -102,13 +109,12 @@ export class PricingComponent implements OnInit {
   }
 
   initiatePayment(plan: PricingPlan): void {
-    // Create order from backend
-    this.apiService.createSubscriptionOrder({
-      amount: plan.amount,
-      planName: plan.name
-    }).subscribe({
+    let body ={
+      plan_id:plan.id
+    }
+    this.apiService.createSubscriptionOrder(body).subscribe({
       next: (response) => {
-        console.log(response)
+        console.log('Order created:', response);
         this.openRazorpayCheckout(response, plan);
       },
       error: (error) => {
@@ -120,12 +126,12 @@ export class PricingComponent implements OnInit {
 
   openRazorpayCheckout(orderData: any, plan: PricingPlan): void {
     const options = {
-      key: orderData.key, // Razorpay key from backend
-      amount: orderData.amount, // Amount in paise
+      key: orderData.key, 
+      amount: orderData.amount,
       currency: orderData.currency || 'INR',
       name: 'ComputED AI',
       description: `${plan.name} Plan - ${plan.priceLabel}`,
-      image: 'assets/images/logo.png', // Your logo
+      image: 'assets/images/Logo.png',
       order_id: orderData.order_id,
       handler: (response: any) => {
         this.handlePaymentSuccess(response, plan);
@@ -136,7 +142,8 @@ export class PricingComponent implements OnInit {
         contact: orderData.prefill?.contact || ''
       },
       notes: {
-        plan_name: plan.name
+        plan_name: plan.name,
+        plan_id: plan.id
       },
       theme: {
         color: '#3399cc'
@@ -163,22 +170,55 @@ export class PricingComponent implements OnInit {
       razorpay_order_id: response.razorpay_order_id,
       razorpay_payment_id: response.razorpay_payment_id,
       razorpay_signature: response.razorpay_signature,
-      plan_name: plan.name
     }).subscribe({
       next: (verifyResponse) => {
-        alert(`Payment successful! Welcome to ${plan.name} plan.`);
-        // Redirect to dashboard or show success message
-        // this.router.navigate(['/dashboard']);
+        console.log('Payment verified:', verifyResponse);
+        this.fetchAndUpdateTokenCredits(plan);
+        this.toastr.success(`Payment successful! Welcome to ${plan.name} plan. You now have ${plan.token_limit.toLocaleString()} tokens.`, 'Success');
       },
       error: (error) => {
         console.error('Payment verification failed:', error);
-        alert('Payment completed but verification failed. Please contact support.');
+        this.toastr.error('Payment completed but verification failed. Please contact support.', 'Error');
+      }
+    });
+  }
+
+  private fetchAndUpdateTokenCredits(plan: PricingPlan): void {
+    this.apiService.getUserCredits().subscribe({
+      next: (creditResponse: any) => {
+        console.log('Fetched updated token credits:', creditResponse);
+        
+        // Update the token service with fresh data
+        this.tokenService.updateFullInfo({
+          total_tokens: creditResponse.total_tokens || 0,
+          used_tokens: creditResponse.used_tokens || 0,
+          remaining_tokens: creditResponse.remaining_tokens || 0,
+          last_updated: new Date().toISOString()
+        });
+        
+        // Show success message
+        this.toastr.success(
+          `Payment successful! Welcome to ${plan.name} plan. You now have ${creditResponse.remaining_tokens?.toLocaleString() || plan.token_limit.toLocaleString()} tokens.`, 
+          'Success',
+          { timeOut: 5000 }
+        );
+      
+      },
+      error: (error) => {
+        console.error('Error fetching token credits:', error);
+        
+        // Still show success but with generic token info
+        this.toastr.success(
+          `Payment successful! Welcome to ${plan.name} plan.`, 
+          'Success',
+          { timeOut: 5000 }
+        );
       }
     });
   }
 
   handlePaymentFailure(response: any): void {
     console.error('Payment failed:', response);
-    alert(`Payment failed: ${response.error.description}`);
+     this.toastr.error(`Payment failed: ${response.error.description}`,'Error');
   }
 }

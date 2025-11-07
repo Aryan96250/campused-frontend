@@ -133,9 +133,9 @@
                      [class.message-assistant]="!msg.isUser">
                   
                   <!-- Message Files Preview (Above text) -->
-                  <div class="message-files" *ngIf="msg.files && msg.files.length > 0">
+                  <div class="message-files" *ngIf="msg.files && msg.files.length > 0" style="cursor: pointer;" >
                     <div class="files-grid">
-                      <div *ngFor="let file of msg.files" class="file-item">
+                      <div *ngFor="let file of msg.files" class="file-item" (click)="onFileClick(file)">
                         <div class="file-preview" *ngIf="file.type === 'image'">
                           <img src="./../../../assets/images/image.png" [alt]="file.name" class="preview-image" />
                         </div>
@@ -341,6 +341,84 @@
       </div>
     </div>
   </div>
+
+  <!-- File Preview Modal -->
+<div
+  class="modal fade file-preview-modal"
+  [class.show]="isModalOpen"
+  [style.display]="isModalOpen ? 'block' : 'none'"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="filePreviewModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content shadow-lg border-0 rounded-4 overflow-hidden">
+      <!-- Header -->
+      <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="modal-title fw-semibold mb-0" id="filePreviewModalLabel">
+          {{ fileName }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          aria-label="Close"
+          (click)="closeModal()"
+        ></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body bg-light text-center p-4">
+        <ng-container *ngIf="selectedFile">
+          <!-- Image Preview -->
+          <img
+            *ngIf="selectedFile.file.type === 'image'"
+            [src]="selectedFile.objectUrl"
+            [alt]="selectedFile.file.name"
+            class="img-fluid rounded shadow-sm"
+            style="max-height: 70vh; object-fit: contain;"
+          />
+
+          <!-- PDF Preview -->
+          <iframe
+            *ngIf="selectedFile.file.type === 'pdf'"
+            [src]="selectedFile.objectUrl"
+            class="w-100 border rounded shadow-sm"
+            style="height: 70vh;"
+          ></iframe>
+
+          <!-- Other File Types -->
+          <div
+            *ngIf="selectedFile.file.type !== 'image' && selectedFile.file.type !== 'pdf'"
+            class="text-muted mt-4"
+          >
+            <p class="mb-3">Preview not available for this file type.</p>
+            <a
+              [href]="selectedFile.objectUrl"
+              [download]="selectedFile.file.name"
+              class="btn btn-primary rounded-pill px-4 py-2"
+              >Download File</a
+            >
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-white border-0 d-flex justify-content-center">
+        <button
+          type="button"
+          class="btn btn-outline-secondary rounded-pill px-4"
+          (click)="closeModal()"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Modal Backdrop -->
+  <!-- <div class="modal-backdrop fade" [class.show]="isModalOpen" (click)="closeModal()"></div> -->
 
   <!-- <app-footer></app-footer> -->
 <!-- </div> -->

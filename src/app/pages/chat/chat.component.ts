@@ -59,12 +59,17 @@ export class ChatComponent implements OnInit, OnDestroy {
   private isRefreshingChannels = false;
   private pendingChannelRefresh = false; 
   private channelsRefreshed = false;
-  
+  channelId:any
   // Token info
   remainingTokens: number = 0;
 
+  // New properties for file preview modal
+  selectedFile: any = null;
+  isModalOpen: boolean = false;
+
   @ViewChild('filePicker') filePicker!: ElementRef<HTMLInputElement>;
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
+  fileName: any;
 
   constructor(
     private api: ApiService,
@@ -85,9 +90,9 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.route.params.subscribe(params => {
           if (this.isInitializing) {
             this.isInitializing = false;
-            const channelId = params['channelId'];
-            if (channelId && this.channels.some(c => c.id === channelId)) {
-              this.loadChannel(channelId);
+             this.channelId = params['channelId'];
+            if (this.channelId && this.channels.some(c => c.id === this.channelId)) {
+              this.loadChannel(this.channelId);
             } else if (!this.hasProcessedInitialData) {
               if (!this.hasInitialData) {
                 this.createNewChat();
@@ -528,7 +533,9 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.onSubmitQuery();
   }
 
-   formatTimestamp(ts: number) {
+    // ... (previous code from earlier responses)
+
+  formatTimestamp(ts: number) {
     const date = new Date(ts);
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
@@ -559,8 +566,37 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.toastTimer = setTimeout(() => (this.toastMsg = null), 2500);
   }
 
+  // New method for handling file clicks and opening preview modal
+onFileClick(file: any) {
+  console.log('Clicked File:', file);
+  console.log('Channel ID:', this.channelId);
+  this.api.fetchFile(file.url,this.channelId).subscribe({
+    next: (blob: Blob) => {
+      const objectUrl = URL.createObjectURL(blob);
+      this.selectedFile = { file, objectUrl};
+      this.fileName = file.url.split('/').pop() || 'file';
+      this.isModalOpen = true;
+    },
+    error: (err) => {
+      console.error('Error fetching file:', err);
+      this.showToast('Failed to load file preview', 'error');
+    }
+  });
+}
+
+
+  // Method to close the modal and clean up
+  closeModal() {
+    if (this.selectedFile) {
+      URL.revokeObjectURL(this.selectedFile.objectUrl);
+      this.selectedFile = null;
+    }
+    this.isModalOpen = false;
+  }
+
   ngOnDestroy() {
     this.clearFilePreviews();
+    this.closeModal(); // Ensure cleanup on destroy
     this.destroy$.next();
     this.destroy$.complete();
   }

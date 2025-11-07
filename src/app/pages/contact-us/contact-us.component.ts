@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ApiService } from '../../helpers/services/apiService';
-
+import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-contact-us',
   standalone: true,
@@ -15,8 +15,9 @@ import { ApiService } from '../../helpers/services/apiService';
 export class ContactUsComponent { 
   contactForm: FormGroup;
   showSuccess = false;
+    loading = false;
 
-  constructor(private fb: FormBuilder, private apiService: ApiService) { // ✅ Inject service
+  constructor(private fb: FormBuilder, private apiService: ApiService,private toastr: ToastrService) {
     this.contactForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
@@ -28,20 +29,21 @@ export class ContactUsComponent {
 
   onSubmit() {
     if (this.contactForm.valid) {
+        this.loading = true;
       console.log('Form submitted:', this.contactForm.value);
       
       this.apiService.sendContactMessage(this.contactForm.value).subscribe({
         next: (response:any) => {
-          console.log('Contact message sent successfully:', response);
           this.showSuccess = true;
           this.contactForm.reset();
+          this.loading = false;
+          this.toastr.success('Your message has been sent successfully!', 'Success');
           
-          // Hide success message after a few seconds
           setTimeout(() => this.showSuccess = false, 3000);
         },
         error: (error:any) => {
-          console.error('Error sending contact message:', error);
-          alert('There was an error sending your message. Please try again later.');
+          this.loading = false;
+          this.toastr.error('There was an error sending your message. Please try again later.', 'Error');
         }
       });
     } else {

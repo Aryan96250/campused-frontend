@@ -961,3 +961,32 @@ button.btn-close-sidebar {
     page-break-inside: avoid; 
   }
 }
+
+
+.file-preview-modal {
+  z-index: 1200 !important; // higher than sidebar
+}
+
+.file-preview-modal .modal-dialog {
+  max-width: 90%;
+}
+
+.modal-backdrop {
+  z-index: 1190 !important; // just behind modal
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+  animation: zoomIn 0.25s ease-in-out;
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

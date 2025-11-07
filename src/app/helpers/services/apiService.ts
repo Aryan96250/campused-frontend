@@ -96,6 +96,11 @@ export class ApiService {
   sendContactMessage( payload: any ): Observable<any> {
     return this.http.post( `${ this.baseUrl }/about/contact/`, payload );
   }
-  
+
+fetchFile(fileUrl: string,channelId:any): Observable<Blob> {
+  return this.http.get(`${this.baseUrl}/channel/${channelId}/file/${fileUrl}`, {
+    responseType: 'blob'
+  });
+}
 
 }

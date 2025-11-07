@@ -58,9 +58,16 @@
             placeholder="Let us know more details..."></textarea>
         </div>
         
-        <button type="submit" class="submit-btn" [disabled]="!contactForm.valid">
-          Send Message
-        </button>
+  <button type="submit" class="submit-btn" [disabled]="!contactForm.valid || loading">
+  <ng-container *ngIf="!loading; else loadingState">
+    Send Message
+  </ng-container>
+  <ng-template #loadingState>
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Sending...
+  </ng-template>
+</button>
+
       </form>
     </div>
 

@@ -58,7 +58,6 @@ export class OtpComponent {
 
   resendOtp() {
     if (this.canResend) {
-      console.log('Resending OTP...');
       this.startResendTimer();
       this.otp = '';
       this.otpForm.reset();
@@ -73,7 +72,6 @@ export class OtpComponent {
     }
     this.loading = true;
     setTimeout( () => {
-      console.log( 'Form Data:', this.otpForm.value );
       this.loading = false;
       this.Router.navigate(['/reset-password']);
     }, 2000 );

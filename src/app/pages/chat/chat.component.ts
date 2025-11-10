@@ -2,13 +2,13 @@ import { Component, ElementRef, ViewChild, OnInit, OnDestroy } from '@angular/co
 import { ApiService } from '../../helpers/services/apiService';
 import { ChatStateService } from '../../helpers/services/chat.service';
 import { TokenService } from '../../helpers/services/token.service';
+import { FileCacheService } from '../../helpers/services/file-cache.service'; // Import the cache service
 import { finalize } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../header/header.component';
-import { FooterComponent } from '../footer/footer.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 
@@ -75,6 +75,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     private api: ApiService,
     private chatStateService: ChatStateService,
     private tokenService: TokenService,
+    private fileCache: FileCacheService, 
     private route: ActivatedRoute,
     private router: Router,
     private location: Location 
@@ -179,7 +180,6 @@ export class ChatComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error fetching token credits:', error);
       }
     });
   }
@@ -369,9 +369,6 @@ export class ChatComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe((res: any) => {
-        console.log('API Response:', res);
-        
-        // Token will be automatically updated by the interceptor
         
         if (wasNewChat && res?.channel_id) {
           this.activeChannelId = res.channel_id;
@@ -390,7 +387,6 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.processApiResponse(res, wasNewChat);
         }
       }, _err => {
-        console.error('API Error:', _err);
         if (this.assistantTypingIndex != null) {
           this.messages.splice(this.assistantTypingIndex, 1);
           this.assistantTypingIndex = null;
@@ -566,37 +562,45 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.toastTimer = setTimeout(() => (this.toastMsg = null), 2500);
   }
 
-  // New method for handling file clicks and opening preview modal
-onFileClick(file: any) {
-  console.log('Clicked File:', file);
-  console.log('Channel ID:', this.channelId);
-  this.api.fetchFile(file.url,this.channelId).subscribe({
-    next: (blob: Blob) => {
-      const objectUrl = URL.createObjectURL(blob);
-      this.selectedFile = { file, objectUrl};
+  /**
+   * Handle file click with caching
+   */
+  onFileClick(file: any) {
+    const cacheKey = `${this.channelId}:${file.url}`;
+    const cachedUrl = this.fileCache.get(cacheKey);
+    
+    if (cachedUrl) {
+      this.selectedFile = { file, objectUrl: cachedUrl };
       this.fileName = file.url.split('/').pop() || 'file';
       this.isModalOpen = true;
-    },
-    error: (err) => {
-      console.error('Error fetching file:', err);
-      this.showToast('Failed to load file preview', 'error');
+      this.showToast('Loaded from cache', 'info');
+      return;
     }
-  });
-}
+    
+    this.api.fetchFile(file.url, this.channelId).subscribe({
+      next: (blob: Blob) => {
+        const objectUrl = this.fileCache.set(cacheKey, blob);
+        
+        this.selectedFile = { file, objectUrl };
+        this.fileName = file.url.split('/').pop() || 'file';
+        this.isModalOpen = true;
+      },
+      error: (err) => {
+        this.showToast('Failed to load file preview', 'error');
+      }
+    });
+  }
 
 
   // Method to close the modal and clean up
   closeModal() {
-    if (this.selectedFile) {
-      URL.revokeObjectURL(this.selectedFile.objectUrl);
-      this.selectedFile = null;
-    }
+    this.selectedFile = null;
     this.isModalOpen = false;
   }
 
   ngOnDestroy() {
     this.clearFilePreviews();
-    this.closeModal(); // Ensure cleanup on destroy
+    this.closeModal(); 
     this.destroy$.next();
     this.destroy$.complete();
   }

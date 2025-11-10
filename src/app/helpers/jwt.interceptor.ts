@@ -4,21 +4,19 @@ import { catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from './services/authService';
+import { FileCacheService } from './services/file-cache.service';
 
 export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const toastr = inject(ToastrService);
   const authService = inject(AuthService);
+  const fileCache = inject(FileCacheService);
 
   const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
 
-  // Always clone request
   const authReq = token
     ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
     : req;
-
-  console.log('Request headers:', authReq.headers.keys());
-
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       let errorMessage = 'An unexpected error occurred';
@@ -33,10 +31,13 @@ export const HttpRequestInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (error.status === 401) {
+        fileCache.clear();
         localStorage.removeItem('access_token');
         authService.logout();
         router.navigate(['/login']);
         toastr.error('Session expired. Please login again.', 'Unauthorized');
+      } else if (error.status === 400) {
+        toastr.error("something went wrong", 'Bad Request');
       } else {
         toastr.error(errorMessage, 'Error');
       }

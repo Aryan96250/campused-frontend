@@ -15,7 +15,6 @@ export class TokenService {
   public tokenInfo$ = this.tokenInfoSubject.asObservable();
 
   constructor() {
-    // Load from localStorage on init
     this.loadFromStorage();
   }
 
@@ -26,7 +25,6 @@ export class TokenService {
         const parsed = JSON.parse(stored);
         this.tokenInfoSubject.next(parsed);
       } catch (e) {
-        console.error('Failed to parse stored token info');
       }
     }
   }
@@ -35,7 +33,6 @@ export class TokenService {
     localStorage.setItem('token_info', JSON.stringify(tokenInfo));
   }
 
-  // Update tokens from response headers
   updateFromHeaders(headers: any): void {
     const remainingTokens = headers.get('X-User-Remaining-Tokens');
     
@@ -55,12 +52,10 @@ export class TokenService {
         this.tokenInfoSubject.next(updatedInfo);
         this.saveToStorage(updatedInfo);
         
-        console.log('Tokens updated from header:', updatedInfo);
       }
     }
   }
 
-  // Update full token info (from API call)
   updateFullInfo(tokenInfo: TokenInfo): void {
     const updatedInfo = {
       ...tokenInfo,
@@ -71,12 +66,10 @@ export class TokenService {
     this.saveToStorage(updatedInfo);
   }
 
-  // Get current token info
   getCurrentTokenInfo(): TokenInfo | null {
     return this.tokenInfoSubject.value;
   }
 
-  // Clear token info
   clearTokenInfo(): void {
     this.tokenInfoSubject.next(null);
     localStorage.removeItem('token_info');

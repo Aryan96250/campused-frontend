@@ -46,14 +46,12 @@ export class PricingComponent implements OnInit {
     this.isLoading = true;
     this.apiService.getSubscriptionPlan().subscribe({
       next: (response) => {
-        console.log('Fetched plans from backend:', response);
         this.plans = this.mapApiResponseToPlans(response);
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error fetching plans:', error);
         this.isLoading = false;
-        alert('Failed to load pricing plans. Please refresh the page.');
+        this.toastr.error('Failed to load pricing plans. Please refresh the page.');
       }
     });   
   }
@@ -104,7 +102,6 @@ export class PricingComponent implements OnInit {
   }
 
   onSelectPlan(plan: PricingPlan): void {
-    console.log('Selected plan:', plan.name);
     this.initiatePayment(plan);
   }
 
@@ -114,12 +111,10 @@ export class PricingComponent implements OnInit {
     }
     this.apiService.createSubscriptionOrder(body).subscribe({
       next: (response) => {
-        console.log('Order created:', response);
         this.openRazorpayCheckout(response, plan);
       },
       error: (error) => {
-        console.error('Error creating order:', error);
-        alert('Failed to initiate payment. Please try again.');
+        this.toastr.error('Failed to initiate payment. Please try again.', 'Error');
       }
     });
   }
@@ -150,7 +145,6 @@ export class PricingComponent implements OnInit {
       },
       modal: {
         ondismiss: () => {
-          console.log('Payment cancelled by user');
         }
       }
     };
@@ -163,7 +157,6 @@ export class PricingComponent implements OnInit {
   }
 
   handlePaymentSuccess(response: any, plan: PricingPlan): void {
-    console.log('Payment successful:', response);
     
     // Verify payment on backend
     this.apiService.verifyPayment({
@@ -172,12 +165,10 @@ export class PricingComponent implements OnInit {
       razorpay_signature: response.razorpay_signature,
     }).subscribe({
       next: (verifyResponse) => {
-        console.log('Payment verified:', verifyResponse);
         this.fetchAndUpdateTokenCredits(plan);
         this.toastr.success(`Payment successful! Welcome to ${plan.name} plan. You now have ${plan.token_limit.toLocaleString()} tokens.`, 'Success');
       },
       error: (error) => {
-        console.error('Payment verification failed:', error);
         this.toastr.error('Payment completed but verification failed. Please contact support.', 'Error');
       }
     });
@@ -186,7 +177,6 @@ export class PricingComponent implements OnInit {
   private fetchAndUpdateTokenCredits(plan: PricingPlan): void {
     this.apiService.getUserCredits().subscribe({
       next: (creditResponse: any) => {
-        console.log('Fetched updated token credits:', creditResponse);
         
         // Update the token service with fresh data
         this.tokenService.updateFullInfo({
@@ -205,8 +195,6 @@ export class PricingComponent implements OnInit {
       
       },
       error: (error) => {
-        console.error('Error fetching token credits:', error);
-        
         // Still show success but with generic token info
         this.toastr.success(
           `Payment successful! Welcome to ${plan.name} plan.`, 
@@ -218,7 +206,6 @@ export class PricingComponent implements OnInit {
   }
 
   handlePaymentFailure(response: any): void {
-    console.error('Payment failed:', response);
      this.toastr.error(`Payment failed: ${response.error.description}`,'Error');
   }
 }

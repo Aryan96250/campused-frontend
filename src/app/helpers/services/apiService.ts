@@ -1,4 +1,3 @@
-// src/app/helpers/services/apiService.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -9,8 +8,7 @@ export class ApiService {
   private baseUrl = environment.apiUrl;
 
   constructor( private http: HttpClient ) {}
-
-  // ---------- AUTH ----------
+  
   register( payload: any ): Observable<any> {
     return this.http.post( `${ this.baseUrl }/auth/signup`, payload );
   }
@@ -37,7 +35,6 @@ export class ApiService {
     return this.http.post( `${ this.baseUrl }/auth/google-auth`, payload );
   }
 
-  // ---------- CHANNELS ----------
   createChannel( initialMessage?: any ): Observable<any> {
     return this.http.post( `${ this.baseUrl }/channel/`, initialMessage ?? {} );
   }
@@ -52,7 +49,6 @@ export class ApiService {
     return this.http.get( `${ this.baseUrl }/channel/${ channelId }` );
   }
 
-  // ---------- CHAT (text + files) ----------
   sendMessageMultipart( channelId: string, q: string, files: File[] ) {
     const form = new FormData();
     form.append( 'q', q ?? '' );
@@ -68,7 +64,6 @@ export class ApiService {
     return this.http.post( `${ this.baseUrl }/channel/`, form );
   }
 
-  // ---------- SUBSCRIPTIONS / RAZORPAY ----------
   createSubscriptionOrder( payload: any ): Observable<any> {
     return this.http.post( `${ this.baseUrl }/subscriptions/create-order`, payload );
   }
@@ -97,10 +92,10 @@ export class ApiService {
     return this.http.post( `${ this.baseUrl }/about/contact/`, payload );
   }
 
-fetchFile(fileUrl: string,channelId:any): Observable<Blob> {
-  return this.http.get(`${this.baseUrl}/channel/${channelId}/file/${fileUrl}`, {
-    responseType: 'blob'
-  });
-}
+  fetchFile( fileUrl: string, channelId: any ): Observable<Blob> {
+    return this.http.get( `${ this.baseUrl }/channel/${ channelId }/file/${ fileUrl }`, {
+      responseType: 'blob'
+    } );
+  }
 
 }

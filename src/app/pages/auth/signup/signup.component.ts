@@ -96,7 +96,6 @@ export class SignupComponent implements OnDestroy{
         }
       },
       error: ( error: any ) => {
-        console.log(error.status,error.error.error)
         if ( error.status === 400) {
           if(error.error.error){
               this.loading=false
@@ -128,7 +127,6 @@ export class SignupComponent implements OnDestroy{
   }
 
   registerWithApple(): void {
-    console.log( 'Register with Apple' );
   }
 
     nevigate(){

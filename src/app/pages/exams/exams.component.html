@@ -1,81 +1,121 @@
 <app-header></app-header>
 
-<section class="hero" [@fadeInUp]>
-  <div class="container">
-    <h1 class="title">Personalized Practice Setup</h1>
-    <p class="subtitle">
-      Choose your preferences below to get customized quiz suggestions.
-    </p>
-    <div class="hero-animation"></div> <!-- Background animation layer -->
+<div class="exams-container">
+  <!-- Hero Section -->
+  <div class="hero-section" [@fadeInUp]>
+    <h1 class="main-title" *ngIf="!selectedExam">Top India <br><span class="exam-text">Exams</span></h1>
+    <h1 class="main-title" *ngIf="selectedExam">{{getSelectedExam()?.name}} <br><span class="exam-text">Exams</span></h1>
+    <p class="subtitle">Choose the plan that helps you study smarter, save time, and crack any exam<br>with AI-powered learning tools</p>
   </div>
-</section>
 
-<section class="onboarding" [@fadeInUp]>
-  <div class="container">
-    <div class="dropdown-grid">
-      <!-- Dropdown 1: Exam (no delay) -->
-      <div class="dropdown card" [@fadeInUp]>
-        <label><i class="fas fa-graduation-cap"></i> Select Exam</label>
-        <select [(ngModel)]="selections.exam" (change)="updateResponse()" aria-label="Select Exam">
-          <option value="">-- Choose --</option>
-          <option value="neet">NEET</option>
-          <option value="jee">JEE</option>
-          <option value="upsc">UPSC</option>
-          <option value="ielts">IELTS</option>
-        </select>
+  <!-- Exams Grid -->
+  <div class="exams-grid">
+    <div 
+      *ngFor="let exam of exams" 
+      class="exam-card"
+      [ngClass]="{'selected': selectedExam === exam.id}"
+      [ngStyle]="{
+        'background': selectedExam === exam.id 
+          ? 'linear-gradient(90deg, #BD94F4 0%, #9F7DCD 100%)' 
+          : '#F0F0F0'
+      }"
+      (click)="selectExam(exam.id)"
+      [@fadeInUp]>
+      
+      <!-- Collapsed State: Show basic info -->
+      <div *ngIf="selectedExam !== exam.id" class="collapsed-content">
+        <div class="card-header">
+          <h3 class="exam-title">{{ exam.name }}</h3>
+        </div>
+        <p class="exam-full-name">{{ exam.fullName }}</p>
+        <p class="exam-description">{{ exam.description }}</p>
+        <a class="details-link">Details ></a>
       </div>
 
-      <!-- Dropdown 2: Subject (0.1s delay via CSS) -->
-      <div class="dropdown card" [@fadeInUp]>
-        <label><i class="fas fa-book"></i> Select Subject</label>
-        <select [(ngModel)]="selections.subject" (change)="updateResponse()" aria-label="Select Subject">
-          <option value="">-- Choose --</option>
-          <option value="biology">Biology</option>
-          <option value="physics">Physics</option>
-          <option value="chemistry">Chemistry</option>
-          <option value="gs">General Studies</option>
-        </select>
-      </div>
+      <!-- Expanded State: Show form -->
+      <div *ngIf="selectedExam === exam.id" class="expanded-content">
+        <div class="form-header">
+          <h2 class="form-title">
+            {{ exam.name }}
+            <span class="form-subtitle">{{ exam.fullName }}</span>
+          </h2>
+        </div>
 
-      <!-- Dropdown 3: Level (0.2s delay via CSS) -->
-      <div class="dropdown card" [@fadeInUp]>
-        <label><i class="fas fa-level-up-alt"></i> Difficulty Level</label>
-        <select [(ngModel)]="selections.level" (change)="updateResponse()" aria-label="Select Difficulty Level">
-          <option value="">-- Choose --</option>
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
-      </div>
+        <div class="form-content">
+          <div class="form-row">
+            <div class="form-group">
+              <label>SUBJECT</label>
+              <div class="select-wrapper">
+                <select [(ngModel)]="selectedSubject" class="form-select" (click)="$event.stopPropagation()">
+                  <option value="" disabled selected></option>
+                  <option *ngFor="let subject of getSelectedExam()?.subjects" [value]="subject.value">
+                    {{ subject.label }}
+                  </option>
+                </select>
+                <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
 
-      <!-- Dropdown 4: Language (0.3s delay via CSS) -->
-      <div class="dropdown card" [@fadeInUp]>
-        <label><i class="fas fa-globe"></i> Preferred Language</label>
-        <select [(ngModel)]="selections.language" (change)="updateResponse()" aria-label="Select Preferred Language">
-          <option value="">-- Choose --</option>
-          <option value="english">English</option>
-          <option value="hindi">Hindi</option>
-        </select>
-      </div>
+            <div class="form-group">
+              <label>LEVEL</label>
+              <div class="select-wrapper">
+                <select [(ngModel)]="selectedLevel" class="form-select" (click)="$event.stopPropagation()">
+                  <option value="" disabled selected></option>
+                  <option *ngFor="let level of getSelectedExam()?.levels" [value]="level.value">
+                    {{ level.label }}
+                  </option>
+                </select>
+                <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
 
-      <!-- Dropdown 5: Mode (0.4s delay via CSS) -->
-      <div class="dropdown card" [@fadeInUp]>
-        <label><i class="fas fa-play-circle"></i> Practice Mode</label>
-        <select [(ngModel)]="selections.mode" (change)="updateResponse()" aria-label="Select Practice Mode">
-          <option value="">-- Choose --</option>
-          <option value="topicwise">Topic-wise</option>
-          <option value="mocktest">Mock Test</option>
-          <option value="flashcards">Flashcards</option>
-        </select>
+          <div class="form-row">
+            <div class="form-group">
+              <label>LANGUAGE</label>
+              <div class="select-wrapper">
+                <select [(ngModel)]="selectedLanguage" class="form-select" (click)="$event.stopPropagation()">
+                  <option value="" disabled selected></option>
+                  <option *ngFor="let language of getSelectedExam()?.languages" [value]="language.value">
+                    {{ language.label }}
+                  </option>
+                </select>
+                <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>MODE</label>
+              <div class="select-wrapper">
+                <select [(ngModel)]="selectedMode" class="form-select" (click)="$event.stopPropagation()">
+                  <option value="" disabled selected></option>
+                  <option *ngFor="let mode of getSelectedExam()?.modes" [value]="mode.value">
+                    {{ mode.label }}
+                  </option>
+                </select>
+                <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="button-container">
+            <button 
+              class="enter-button" 
+              [disabled]="!canSubmit()"
+              (click)="handleSubmit()">
+              ENTER
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-
-    <!-- Response Section -->
-    <div class="response card" *ngIf="response" [@bounceIn]>
-      <h3><i class="fas fa-lightbulb"></i> Recommended Practice:</h3>
-      <p>{{ response }}</p>
-    </div>
   </div>
-</section>
-
-<!-- <app-footer></app-footer> -->
+</div>

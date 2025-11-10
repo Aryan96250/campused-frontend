@@ -108,7 +108,6 @@ export class LoginComponent implements OnDestroy {
   }
 
   loginWithApple(): void {
-    console.log('Login with Apple'); // Implement or remove
   }
 
   // Add a logout method if needed (e.g., for a button)

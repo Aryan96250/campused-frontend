@@ -1,7 +1,7 @@
-import { Injectable, Injector } from '@angular/core';
+import { inject, Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { GoogleAuthService } from './googleService';
-
+import { FileCacheService } from './file-cache.service';
 interface AuthResponse {
   message: string;
   access_token: string;
@@ -9,7 +9,6 @@ interface AuthResponse {
 
 interface User {
   token: string;
-  // Add other user properties as needed
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,7 +19,7 @@ export class AuthService {
   private userName = 'user_name';
   private injector: Injector;
 
-  constructor(injector: Injector) {
+  constructor(injector: Injector,private fileCache: FileCacheService) {
     this.injector = injector;
 
     const token = this.getTokenFromStorage();
@@ -66,12 +65,12 @@ export class AuthService {
 
   logout(): void {
     try {
+      this.fileCache.clear();
       localStorage.clear();
       sessionStorage.clear();
       const googleService = this.injector.get(GoogleAuthService);
       googleService.signOut();
     } catch (error) {
-      console.error('Error signing out from Google during logout:', error);
     } finally {
       this.clearToken();
     }

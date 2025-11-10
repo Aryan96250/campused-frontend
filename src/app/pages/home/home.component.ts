@@ -153,10 +153,17 @@ onSubmitQuery(): void {
 
 
   onExpandInput(): void {
-    console.log('Expand clicked');
+  }
+
+  chatOpen(){
+    this.router.navigate(['/chat']);
+  }
+
+  GenerateProject(): void {
+    this.chatStateService.setInitialData('Generate a project plan for my startup idea.', []);
+    this.router.navigate(['/chat']);
   }
 
   onShowOptions(): void {
-    console.log('Options clicked');
   }
 }

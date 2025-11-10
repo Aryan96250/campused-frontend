@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://nerve-military-committees-char.trycloudflare.com/api',
+  apiUrl: 'https://feel-optimization-blessed-pharmaceutical.trycloudflare.com/api',
   featureFlag: true,
   googleClientId:'214414241265-ldcgmnam676v2vvov2a2nd711bljifp2.apps.googleusercontent.com'
 };

@@ -30,8 +30,6 @@ export class ContactUsComponent {
   onSubmit() {
     if (this.contactForm.valid) {
         this.loading = true;
-      console.log('Form submitted:', this.contactForm.value);
-      
       this.apiService.sendContactMessage(this.contactForm.value).subscribe({
         next: (response:any) => {
           this.showSuccess = true;

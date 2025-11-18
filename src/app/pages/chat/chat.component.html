@@ -133,14 +133,22 @@
                      [class.message-assistant]="!msg.isUser">
                   
                   <!-- Message Files Preview (Above text) -->
-                  <div class="message-files" *ngIf="msg.files && msg.files.length > 0" style="cursor: pointer;" >
+                  <div class="message-files" *ngIf="msg.files && msg.files.length > 0">
                     <div class="files-grid">
-                      <div *ngFor="let file of msg.files" class="file-item" (click)="onFileClick(file)">
+                      <div *ngFor="let file of msg.files" class="file-item" (click)="onFileClick(file)" style="cursor: pointer;">
+                        
+                        <!-- Image Preview: Show actual image if previewUrl exists -->
                         <div class="file-preview" *ngIf="file.type === 'image'">
-                          <img src="./../../../assets/images/image.png" [alt]="file.name" class="preview-image" />
+                          <img [src]="file.previewUrl || './../../../assets/images/image.png'" 
+                               [alt]="file.name" 
+                               class="preview-image"
+                               [style.opacity]="file.previewUrl ? '1' : '0.5'" />
                         </div>
+                        
+                        <!-- PDF/Document Preview: Show icon (will open modal on click) -->
                         <div class="file-preview file-icon-preview" *ngIf="file.type !== 'image'">
-                          <div class="file-type-badge" [class.pdf]="file.type === 'pdf'" 
+                          <div class="file-type-badge" 
+                               [class.pdf]="file.type === 'pdf'" 
                                [class.doc]="file.type === 'document'">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                               <path [attr.d]="getFileIcon(file.type)"></path>
@@ -163,7 +171,6 @@
 
                     <ng-template #messageContent>
                       <div class="message-text">{{ msg.text }}</div>
-                      <!-- <div class="message-time">{{ formatTimestamp(msg.timestamp) }}</div> -->
 
                       <div class="message-actions" *ngIf="!msg.isUser">
                         <button class="action-btn" title="Copy" (click)="copyMessage(msg.text)">
@@ -215,7 +222,7 @@
                 </div>
               </ng-template>
             </div>
-                 <div class="input-area desktops">
+                 <div class="input-area desktops" >
                 <div class="file-previews" *ngIf="filePreviews.length > 0">
                   <div *ngFor="let preview of filePreviews; let i = index" class="file-preview-item">
                     <button class="remove-preview" (click)="removeFilePreview(i)" title="Remove" *ngIf="!isProcessing">
@@ -379,43 +386,55 @@
             style="max-height: 70vh; object-fit: contain;"
           />
 
-          <!-- PDF Preview -->
-          <iframe
-            *ngIf="selectedFile.file.type === 'pdf'"
-            [src]="selectedFile.objectUrl"
-            class="w-100 border rounded shadow-sm"
-            style="height: 70vh;"
-          ></iframe>
+            <!-- PDF Preview -->
+            <iframe *ngIf="selectedFile.file.type === 'pdf'"
+                    [src]="safePreviewUrl"
+                    class="w-100 border rounded shadow-sm"
+                    style="height: 70vh;"></iframe>
 
-          <!-- Other File Types -->
-          <div
-            *ngIf="selectedFile.file.type !== 'image' && selectedFile.file.type !== 'pdf'"
-            class="text-muted mt-4"
-          >
-            <p class="mb-3">Preview not available for this file type.</p>
-            <a
-              [href]="selectedFile.objectUrl"
-              [download]="selectedFile.file.name"
-              class="btn btn-primary rounded-pill px-4 py-2"
-              >Download File</a
-            >
-          </div>
-        </ng-container>
-      </div>
+            <!-- Document Preview (DOC/DOCX) -->
+            <div *ngIf="selectedFile.file.type === 'document'" class="text-muted mt-4">
+              <div class="mb-3">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <line x1="10" y1="9" x2="8" y2="9"></line>
+                </svg>
+              </div>
+              <p class="mb-3">Document preview not available in browser.</p>
+              <a [href]="selectedFile.objectUrl"
+                 [download]="selectedFile.file.name"
+                 class="btn btn-primary rounded-pill px-4 py-2">
+                Download Document
+              </a>
+            </div>
 
-      <!-- Footer -->
-      <div class="modal-footer bg-white border-0 d-flex justify-content-center">
-        <button
-          type="button"
-          class="btn btn-outline-secondary rounded-pill px-4"
-          (click)="closeModal()"
-        >
-          Close
-        </button>
+            <!-- Other File Types -->
+            <div *ngIf="selectedFile.file.type !== 'image' && selectedFile.file.type !== 'pdf' && selectedFile.file.type !== 'document'"
+                 class="text-muted mt-4">
+              <p class="mb-3">Preview not available for this file type.</p>
+              <a [href]="selectedFile.objectUrl"
+                 [download]="selectedFile.file.name"
+                 class="btn btn-primary rounded-pill px-4 py-2">
+                Download File
+              </a>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer bg-white border-0 d-flex justify-content-center">
+          <button type="button"
+                  class="btn btn-outline-secondary rounded-pill px-4"
+                  (click)="closeModal()">
+            Close
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
   <!-- Modal Backdrop -->
   <!-- <div class="modal-backdrop fade" [class.show]="isModalOpen" (click)="closeModal()"></div> -->

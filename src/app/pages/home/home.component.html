@@ -11,8 +11,8 @@
            Your AI-powered study assistant that creates instant <span class="summary"> summaries, flashcards, quizzes & voice </span> notes to help you — study smarter, not harder. <strong class="purple"> </strong>
         </p>
         <div class="buttons">
-          <button class="btn btn--primary btn--lg" href="#" (click)="chatOpen()" style="cursor: pointer;">Start Free New</button>
-          <button class="btn btn--normal btn--lg" href="#" (click)="chatOpen()" style="cursor: pointer;">Start Free New</button>
+          <button class="btn btn--primary btn--lg" href="#" (click)="chatOpen()" style="cursor: pointer; z-index: 999;">Start Free New</button>
+          <!-- <button class="btn btn--normal btn--lg" href="#" (click)="chatOpen()" style="cursor: pointer;">Start Free New</button> -->
         </div>
       </div>
       <div class="hero__art" aria-hidden="true">
@@ -59,7 +59,7 @@
               </svg>
             </div>
             <div class="file-info">
-              <p class="file-name">{{ file.name }}</p>
+              <p class="file-name">{{ file.name.slice(0,30) }}</p>
               <p class="file-size">{{ (file.size / 1024).toFixed(2) }} KB</p>
             </div>
             <button type="button" class="remove-file" (click)="removeSelectedFile(i)" title="Remove">
@@ -79,7 +79,7 @@
             >
               +
             </button>
-            <button
+            <!-- <button
               class="ask__options"
               aria-label="Options"
               (click)="onShowOptions()"
@@ -93,7 +93,7 @@
                 <path d="M6 8L2 4h8L6 8z" />
               </svg>
               <span>Options</span>
-            </button>
+            </button> -->
           </div>
           <button
             class="ask__submit"
@@ -278,14 +278,24 @@
       <h3>Student <span>Testimonials</span></h3>
       <p>Diam quis enim lobortis scelerisque fermentum dui faucibus. Uma nunc id cursus</p>
     </div>
-    <div class="d-flex gap-5 align-items-center">
-      <p class="arrow left" (click)="prev()">
-        <img src="assets/images/Arrow-right.png" alt="left arrow" />
-      </p>
-      <p class="arrow right" (click)="next()">
-        <img src="assets/images/Arrow-left.png" alt="left arrow" />
-      </p>
-    </div>
+<div class="d-flex gap-5 align-items-center">
+  <p
+    class="arrow left"
+    [class.disabled]="currentIndex === 0"
+    (click)="prev()"
+  >
+    <img src="assets/images/Arrow-right.png" alt="left arrow" />
+  </p>
+
+  <p
+    class="arrow right"
+    [class.disabled]="currentIndex >= testimonials.length - cardsPerView"
+    (click)="next()"
+  >
+    <img src="assets/images/Arrow-left.png" alt="right arrow" />
+  </p>
+</div>
+
   </div>
   
   <div class="carousel">

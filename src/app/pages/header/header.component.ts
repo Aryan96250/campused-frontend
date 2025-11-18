@@ -109,6 +109,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return num.toString();
   }
 
+  neviagteBack(){
+    this.router.navigateByUrl('')
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

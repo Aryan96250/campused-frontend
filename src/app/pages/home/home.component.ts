@@ -156,12 +156,16 @@ onSubmitQuery(): void {
   }
 
   chatOpen(){
-    this.router.navigate(['/chat']);
+    if(this.authService.isAuthenticated()){
+      this.router.navigate(['/chat']);
+    }else{
+      this.router.navigate(['/signup']);
+    }
   }
 
   GenerateProject(): void {
-    this.chatStateService.setInitialData('Generate a project plan for my startup idea.', []);
-    this.router.navigate(['/chat']);
+    // this.chatStateService.setInitialData('Generate a project plan for my startup idea.', []);
+    this.router.navigate(['/exams']);
   }
 
   onShowOptions(): void {

@@ -245,6 +245,10 @@ app-footer {
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 8px;
     }
+    .message-files .file-preview .preview-image {
+    width: 32%;
+    margin: 1px 0 0 152px !important;
+}
   }
   
   .file-item {
@@ -272,9 +276,11 @@ app-footer {
     overflow: hidden;
     
     .preview-image {
-      width: 31%;
-      height: 54%;
-      object-fit: cover;
+width: 28%;
+    height: 54%;
+    object-fit: cover;
+    margin: 1px 0 0 428px;
+
     }
     
     &.file-icon-preview {
@@ -777,6 +783,10 @@ button.btn-close-sidebar {
 /* ---------- Responsive ---------- */
 
 @media (max-width: 767.98px) {
+      .message-files .file-preview .preview-image {
+    width: 32%;
+    margin: 1px 0 0 152px !important;
+}
   .chat-container {
     // height: 100vh;
     min-height: 0;

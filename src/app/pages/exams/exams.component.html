@@ -1,15 +1,86 @@
 <app-header></app-header>
 
 <div class="exams-container">
+  <!-- Sidebar Toggle Button -->
+  <button class="sidebar-toggle" (click)="toggleSidebar()" *ngIf="!showResults">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span>Saved Exams</span>
+  </button>
+
+  <!-- Sidebar -->
+  <div class="sidebar" [class.open]="isSidebarOpen" [@slideIn] *ngIf="isSidebarOpen">
+    <div class="sidebar-header">
+      <h3>Saved Exams</h3>
+      <button class="close-btn" (click)="closeSidebar()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="sidebar-content">
+      <!-- Loading State -->
+      <div class="sidebar-loading" *ngIf="isLoadingExams">
+        <div class="spinner-small"></div>
+        <p>Loading exams...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div class="sidebar-empty" *ngIf="!isLoadingExams && savedExams.length === 0">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p>No saved exams yet</p>
+        <span>Generate an exam to see it here</span>
+      </div>
+
+      <!-- Exams List -->
+      <div class="sidebar-list" *ngIf="!isLoadingExams && savedExams.length > 0">
+        <div 
+          class="sidebar-exam-item" 
+          *ngFor="let exam of savedExams"
+          (click)="loadExamById(exam.id)">
+          <div class="exam-item-header">
+            <span class="exam-name">{{ exam.exam }}</span>
+            <span class="exam-difficulty" [class]="'difficulty-' + exam.difficulty">
+              {{ exam.difficulty }}
+            </span>
+          </div>
+          <div class="exam-item-date">
+            {{ formatDate(exam.updated_at) }}
+          </div>
+          <div class="exam-item-arrow">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div class="sidebar-overlay" *ngIf="isSidebarOpen" (click)="closeSidebar()"></div>
+
   <!-- Hero Section -->
-  <div class="hero-section" [@fadeInUp]>
+  <div class="hero-section" [@fadeInUp] *ngIf="!showResults">
     <h1 class="main-title" *ngIf="!selectedExam">Top India <br><span class="exam-text">Exams</span></h1>
     <h1 class="main-title" *ngIf="selectedExam">{{getSelectedExam()?.name}} <br><span class="exam-text">Exams</span></h1>
     <p class="subtitle">Choose the plan that helps you study smarter, save time, and crack any exam<br>with AI-powered learning tools</p>
   </div>
 
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>{{ showResults ? 'Loading exam...' : 'Generating your exam...' }}</p>
+    </div>
+  </div>
+
   <!-- Exams Grid -->
-  <div class="exams-grid">
+  <div class="exams-grid" *ngIf="!showResults">
     <div 
       *ngFor="let exam of exams" 
       class="exam-card"
@@ -22,22 +93,21 @@
       (click)="selectExam(exam.id)"
       [@fadeInUp]>
       
-      <!-- Collapsed State: Show basic info -->
+      <!-- Collapsed State -->
       <div *ngIf="selectedExam !== exam.id" class="collapsed-content">
         <div class="card-header">
           <h3 class="exam-title">{{ exam.name }}</h3>
         </div>
         <p class="exam-full-name">{{ exam.fullName }}</p>
         <p class="exam-description">{{ exam.description }}</p>
-        <a class="details-link">Details ></a>
+        <a class="details-link">Details -></a>
       </div>
 
-      <!-- Expanded State: Show form -->
+      <!-- Expanded State -->
       <div *ngIf="selectedExam === exam.id" class="expanded-content">
         <div class="form-header">
           <h2 class="form-title">
-            {{ exam.name }}
-            <span class="form-subtitle">{{ exam.fullName }}</span>
+            {{ exam.name }}<span class="form-subtitle">{{ exam.fullName }}</span>
           </h2>
         </div>
 
@@ -53,7 +123,7 @@
                   </option>
                 </select>
                 <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:black"/>
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
             </div>
@@ -68,7 +138,7 @@
                   </option>
                 </select>
                 <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:black"/>
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
             </div>
@@ -85,7 +155,7 @@
                   </option>
                 </select>
                 <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:black"/>
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
             </div>
@@ -100,7 +170,7 @@
                   </option>
                 </select>
                 <svg class="select-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:black"/>
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
             </div>
@@ -109,13 +179,246 @@
           <div class="button-container">
             <button 
               class="enter-button" 
-              [disabled]="!canSubmit()"
+              [disabled]="!canSubmit() || isLoading"
               (click)="handleSubmit()">
-              ENTER
+              {{ isLoading ? 'GENERATING...' : 'ENTER' }}
             </button>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Results View -->
+
+  <div class="results-container" *ngIf="showResults && examResults && !showResultsSummary " [@fadeInUp]>
+    <div class="results-header">
+      <button class="back-button" (click)="backToForm()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back
+      </button>
+      <h2 class="results-title">{{ examResults.exam }} - {{ examResults.mode === 'mcq' ? 'MCQ Questions' : 'Flash Cards' }}</h2>
+      <div class="question-counter">
+        Question {{ currentQuestionIndex + 1 }} of {{ examResults.questions_answers.length }}
+      </div>
+    </div>
+
+    <!-- MCQ Question Display -->
+    <div class="question-card mcq-card" *ngIf="getCurrentMCQQuestion() as mcqQuestion">
+      <div class="question-text">
+        {{ mcqQuestion.question }}
+      </div>
+
+      <div class="options-container">
+        <div 
+          *ngFor="let option of ['opt1', 'opt2', 'opt3', 'opt4']; let i = index"
+          class="option-item"
+          [ngClass]="{
+            'selected': isSelectedOption(i),
+            'correct': selectedAnswer && isCorrectOption(i, mcqQuestion),
+            'incorrect': isIncorrectOption(i, mcqQuestion)
+          }"
+          (click)="selectMCQOption((i + 1).toString())">
+          <div class="option-label">{{ ['A', 'B', 'C', 'D'][i] }}</div>
+          <div class="option-text">{{ mcqQuestion.options[option] }}</div>
+          
+          <!-- Show checkmark for correct answer after selection -->
+          <svg 
+            *ngIf="selectedAnswer && isCorrectOption(i, mcqQuestion)" 
+            class="check-icon" 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none">
+            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          
+          <!-- Show X for incorrect answer after selection -->
+          <svg 
+            *ngIf="isIncorrectOption(i, mcqQuestion)" 
+            class="x-icon" 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="explanation-box" *ngIf="selectedAnswer">
+        <h4>Explanation:</h4>
+        <p>{{ mcqQuestion.explanation }}</p>
+      </div>
+    </div>
+
+    <!-- Flashcard Display -->
+    <div class="question-card flashcard-card" *ngIf="getCurrentFlashcardQuestion() as flashcardQuestion">
+      <div class="flashcard-content" [ngClass]="{'flipped': showFlashcardAnswer}">
+        <div class="flashcard-front">
+          <div class="flashcard-label">Question</div>
+          <div class="flashcard-text">
+            {{ flashcardQuestion.question }}
+          </div>
+          <button class="reveal-button" (click)="toggleFlashcardAnswer()">
+            Show Answer
+          </button>
+        </div>
+
+        <div class="flashcard-back" *ngIf="showFlashcardAnswer">
+          <div class="flashcard-label">Answer</div>
+          <div class="flashcard-text">
+            {{ flashcardQuestion.answer }}
+          </div>
+          <div class="explanation-section">
+            <h4>Explanation:</h4>
+            <p>{{ flashcardQuestion.explanation }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="navigation-buttons"   [ngStyle]="{
+    'justify-content': examResults.mode === 'mcq' ? 'end' : 'space-between'
+  }">
+        <button  *ngIf="examResults.mode !== 'mcq'"
+          class="nav-button prev-button" 
+          [disabled]="currentQuestionIndex === 0"
+          (click)="previousQuestion()">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Previous
+        </button>
+      
+      
+      <button 
+        class="nav-button next-button" 
+        [disabled]="currentQuestionIndex === examResults.questions_answers.length"
+        (click)="nextQuestion()">
+        Next
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="results-summary-container" *ngIf="showResults && examResults && showResultsSummary && examResults.mode === 'mcq'" [@fadeInUp]>
+  <div class="summary-card">
+    <div class="summary-header">
+      <div class="trophy-icon" [ngClass]="isPassed() ? 'pass' : 'fail'">
+        <svg *ngIf="isPassed()" width="80" height="80" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
+        </svg>
+        <svg *ngIf="!isPassed()" width="80" height="80" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      
+      <h2 class="summary-title">{{ isPassed() ? 'Congratulations!' : 'Keep Practicing!' }}</h2>
+      <p class="summary-subtitle">{{ isPassed() ? 'You have passed the exam!' : 'You can do better next time!' }}</p>
+    </div>
+
+    <div class="score-circle-container">
+      <div class="score-circle" [ngClass]="isPassed() ? 'pass' : 'fail'">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle 
+            cx="100" 
+            cy="100" 
+            r="85" 
+            fill="none" 
+            stroke="#E5E7EB" 
+            stroke-width="20"/>
+          <circle 
+            cx="100" 
+            cy="100" 
+            r="85" 
+            fill="none" 
+            [attr.stroke]="isPassed() ? '#10B981' : '#EF4444'"
+            stroke-width="20"
+            stroke-linecap="round"
+            [style.stroke-dasharray]="534"
+            [style.stroke-dashoffset]="534 - (534 * calculateScore().percentage / 100)"
+            transform="rotate(-90 100 100)"/>
+        </svg>
+        <div class="score-text">
+          <span class="percentage">{{ calculateScore().percentage.toFixed(0) }}%</span>
+          <span class="score-label">Score</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-item correct">
+        <div class="stat-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="stat-value">{{ calculateScore().correct }}</div>
+        <div class="stat-label">Correct</div>
+      </div>
+
+      <div class="stat-item incorrect">
+        <div class="stat-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="stat-value">{{ calculateScore().incorrect }}</div>
+        <div class="stat-label">Incorrect</div>
+      </div>
+
+      <div class="stat-item unanswered">
+        <div class="stat-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 16h.01M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="stat-value">{{ calculateScore().total - calculateScore().correct - calculateScore().incorrect }}</div>
+        <div class="stat-label">Unanswered</div>
+      </div>
+
+      <div class="stat-item total">
+        <div class="stat-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="stat-value">{{ calculateScore().total }}</div>
+        <div class="stat-label">Total Questions</div>
+      </div>
+    </div>
+
+    <div class="summary-actions">
+      <button class="action-button primary" (click)="reviewAnswers()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" stroke-width="2"/>
+          <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        Review Answers
+      </button>
+
+      <!-- <button class="action-button secondary" (click)="restartExam()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Restart Exam
+      </button> -->
+
+      <button class="action-button outline" (click)="backToForm()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back to Home
+      </button>
+    </div>
+  </div>
+</div>
 </div>

@@ -56,6 +56,17 @@
             id="message" 
             formControlName="message"
             placeholder="Let us know more details..."></textarea>
+            <div *ngIf="contactForm.get('message')?.touched && contactForm.get('message')?.errors">
+  
+  <small class="text-danger" *ngIf="contactForm.get('message')?.errors?.['required']">
+    Message is required.
+  </small>
+
+  <small class="text-danger" *ngIf="contactForm.get('message')?.errors?.['onlySpaces']">
+    Message cannot be empty or only spaces.
+  </small>
+
+</div>
         </div>
         
   <button type="submit" class="submit-btn" [disabled]="!contactForm.valid || loading">

@@ -191,7 +191,7 @@ span.summary {
     width: 40px;
     height: 40px;
     border: none;
-    background: #FF5835;
+    background: #f1ee0f;
     color: #fff;
     border-radius: 50%;
     cursor: pointer;
@@ -1243,4 +1243,10 @@ p.medium-text {
   .testimonials-section .header p {
     font-size: 0.85rem;
   }
+}
+
+.arrow.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
 }

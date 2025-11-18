@@ -5,6 +5,7 @@ import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ApiService } from '../../helpers/services/apiService';
 import { ToastrService } from 'ngx-toastr';
+import { noOnlySpaces } from '../../helpers/message.validators';
 @Component({
   selector: 'app-contact-us',
   standalone: true,
@@ -23,31 +24,41 @@ export class ContactUsComponent {
       email: ['', [Validators.required, Validators.email]],
       company: [''],
       subject: ['', Validators.required],
-      message: ['', Validators.required]
+      message: ['', [Validators.required, noOnlySpaces]]
     });
   }
 
-  onSubmit() {
-    if (this.contactForm.valid) {
-        this.loading = true;
-      this.apiService.sendContactMessage(this.contactForm.value).subscribe({
-        next: (response:any) => {
-          this.showSuccess = true;
-          this.contactForm.reset();
-          this.loading = false;
-          this.toastr.success('Your message has been sent successfully!', 'Success');
-          
-          setTimeout(() => this.showSuccess = false, 3000);
-        },
-        error: (error:any) => {
-          this.loading = false;
-          this.toastr.error('There was an error sending your message. Please try again later.', 'Error');
-        }
-      });
-    } else {
-      this.contactForm.markAllAsTouched();
-    }
+onSubmit(): void {
+  if (this.contactForm.invalid) {
+    this.contactForm.markAllAsTouched();
+    return;
   }
+
+  this.loading = true;
+
+  const { name, email, company, subject, message } = this.contactForm.value;
+
+  const body = {
+    name,
+    email,
+    company,
+    subject,
+    message: message.trim()
+  };
+
+  this.apiService.sendContactMessage(body).subscribe({
+    next: () => {
+      this.toastr.success('Your message has been sent successfully!', 'Success');
+      this.contactForm.reset();
+      this.loading = false;
+    },
+    error: () => {
+      this.toastr.error('There was an error sending your message. Please try again later.', 'Error');
+      this.loading = false;
+    }
+  });
+}
+
 
   getDirection() {
     window.open('https://maps.google.com', '_blank');

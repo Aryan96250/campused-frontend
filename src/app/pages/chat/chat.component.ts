@@ -2,15 +2,16 @@ import { Component, ElementRef, ViewChild, OnInit, OnDestroy } from '@angular/co
 import { ApiService } from '../../helpers/services/apiService';
 import { ChatStateService } from '../../helpers/services/chat.service';
 import { TokenService } from '../../helpers/services/token.service';
-import { FileCacheService } from '../../helpers/services/file-cache.service'; // Import the cache service
+import { FileCacheService } from '../../helpers/services/file-cache.service';
 import { finalize } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../header/header.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 interface ChatMsg {
   text: string;
@@ -24,6 +25,7 @@ interface MessageFile {
   name: string;
   url: string;
   type: string;
+  previewUrl?: string; // For cached preview URLs
 }
 
 interface FilePreview {
@@ -59,17 +61,17 @@ export class ChatComponent implements OnInit, OnDestroy {
   private isRefreshingChannels = false;
   private pendingChannelRefresh = false; 
   private channelsRefreshed = false;
-  channelId:any
-  // Token info
+  channelId: any;
   remainingTokens: number = 0;
 
-  // New properties for file preview modal
+  // Modal properties
   selectedFile: any = null;
   isModalOpen: boolean = false;
+  fileName: any;
+  safePreviewUrl: SafeResourceUrl | null = null;
 
   @ViewChild('filePicker') filePicker!: ElementRef<HTMLInputElement>;
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
-  fileName: any;
 
   constructor(
     private api: ApiService,
@@ -78,7 +80,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     private fileCache: FileCacheService, 
     private route: ActivatedRoute,
     private router: Router,
-    private location: Location 
+    private location: Location,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit() {
@@ -91,7 +94,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.route.params.subscribe(params => {
           if (this.isInitializing) {
             this.isInitializing = false;
-             this.channelId = params['channelId'];
+            this.channelId = params['channelId'];
             if (this.channelId && this.channels.some(c => c.id === this.channelId)) {
               this.loadChannel(this.channelId);
             } else if (!this.hasProcessedInitialData) {
@@ -118,7 +121,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private subscribeToInitialData(): void {
     this.chatStateService.initialData$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((data:any) => {
+      .subscribe((data: any) => {
         if (data && (data.query.trim() || data.files.length > 0) && !this.hasProcessedInitialData) {
           this.hasProcessedInitialData = true;
           this.hasInitialData = true;
@@ -180,6 +183,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
+        console.error('Failed to fetch token credits', error);
       }
     });
   }
@@ -197,10 +201,58 @@ export class ChatComponent implements OnInit, OnDestroy {
           files: this.parseMessageFiles(m),
           liked: m?.liked ?? null
         }));
+      
+      // Preload image previews after messages are loaded
+      this.preloadImagePreviews(id);
+      
       queueMicrotask(() => this.scrollToBottom());
     });
     this.mobileSidebarOpen = false;
     this.router.navigate(['/chat', id], { replaceUrl: true });
+  }
+
+  /**
+   * Preload image previews for all messages in the channel
+   */
+  private preloadImagePreviews(channelId: string): void {
+    const imageLoadRequests: any[] = [];
+    
+    this.messages.forEach(msg => {
+      if (msg.files && msg.files.length > 0) {
+        msg.files.forEach(file => {
+          if (file.type === 'image') {
+            const cacheKey = `${channelId}:${file.url}`;
+            const cachedUrl = this.fileCache.get(cacheKey);
+            
+            if (cachedUrl) {
+              // Already cached
+              file.previewUrl = cachedUrl;
+            } else {
+              // Need to load
+              const loadRequest = this.api.fetchFile(file.url, channelId).pipe(
+                takeUntil(this.destroy$)
+              );
+              imageLoadRequests.push({ file, loadRequest, cacheKey });
+            }
+          }
+        });
+      }
+    });
+
+    // Load all images in parallel
+    if (imageLoadRequests.length > 0) {
+      imageLoadRequests.forEach(({ file, loadRequest, cacheKey }) => {
+        loadRequest.subscribe({
+          next: (blob: Blob) => {
+            const objectUrl = this.fileCache.set(cacheKey, blob);
+            file.previewUrl = objectUrl;
+          },
+          error: (err: any) => {
+            console.error('Failed to load image preview:', err);
+          }
+        });
+      });
+    }
   }
 
   private parseMessageFiles(message: any): MessageFile[] {
@@ -321,14 +373,18 @@ export class ChatComponent implements OnInit, OnDestroy {
     const q = (this.userQuery ?? '').trim();
     if (!q && this.pendingFiles.length === 0) return;
 
-    const userFiles: MessageFile[] = this.pendingFiles.map(file => ({
-      name: file.name,
-      url: URL.createObjectURL(file),
-      type: file.type.startsWith('image/') ? 'image' : 
-            file.type === 'application/pdf' ? 'pdf' :
-            file.name.endsWith('.doc') || file.name.endsWith('.docx') ? 'document' :
-            file.name.endsWith('.xls') || file.name.endsWith('.xlsx') ? 'spreadsheet' : 'file'
-    }));
+    const userFiles: MessageFile[] = this.pendingFiles.map(file => {
+      const objectUrl = URL.createObjectURL(file);
+      return {
+        name: file.name,
+        url: objectUrl,
+        type: file.type.startsWith('image/') ? 'image' : 
+              file.type === 'application/pdf' ? 'pdf' :
+              file.name.endsWith('.doc') || file.name.endsWith('.docx') ? 'document' :
+              file.name.endsWith('.xls') || file.name.endsWith('.xlsx') ? 'spreadsheet' : 'file',
+        previewUrl: file.type.startsWith('image/') ? objectUrl : undefined
+      };
+    });
 
     if (q || userFiles.length > 0) {
       this.messages.push({ 
@@ -369,7 +425,6 @@ export class ChatComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe((res: any) => {
-        
         if (wasNewChat && res?.channel_id) {
           this.activeChannelId = res.channel_id;
           
@@ -427,6 +482,12 @@ export class ChatComponent implements OnInit, OnDestroy {
             files: this.parseMessageFiles(m),
             liked: m?.liked ?? null
           }));
+          
+          // Preload images after replacing all messages
+          if (this.activeChannelId) {
+            this.preloadImagePreviews(this.activeChannelId);
+          }
+          
           queueMicrotask(() => this.scrollToBottom());
           return;
         }
@@ -566,35 +627,54 @@ export class ChatComponent implements OnInit, OnDestroy {
    * Handle file click with caching
    */
   onFileClick(file: any) {
-    const cacheKey = `${this.channelId}:${file.url}`;
+    if (!this.activeChannelId) return;
+    
+    const cacheKey = `${this.activeChannelId}:${file.url}`;
     const cachedUrl = this.fileCache.get(cacheKey);
     
     if (cachedUrl) {
-      this.selectedFile = { file, objectUrl: cachedUrl };
-      this.fileName = file.url.split('/').pop() || 'file';
-      this.isModalOpen = true;
-      this.showToast('Loaded from cache', 'info');
+      this.openFileModal(file, cachedUrl);
       return;
     }
     
-    this.api.fetchFile(file.url, this.channelId).subscribe({
+    // Show loading indicator
+    this.showToast('Loading file...', 'info');
+    
+    this.api.fetchFile(file.url, this.activeChannelId).subscribe({
       next: (blob: Blob) => {
         const objectUrl = this.fileCache.set(cacheKey, blob);
-        
-        this.selectedFile = { file, objectUrl };
-        this.fileName = file.url.split('/').pop() || 'file';
-        this.isModalOpen = true;
+        this.openFileModal(file, objectUrl);
       },
       error: (err) => {
+        console.error('Failed to load file:', err);
         this.showToast('Failed to load file preview', 'error');
       }
     });
   }
 
+  /**
+   * Open the file modal with the given file and object URL
+   */
+  private openFileModal(file: any, objectUrl: string): void {
+    this.selectedFile = { file, objectUrl };
+    this.fileName = file.name || file.url.split('/').pop() || 'file';
+    
+    // Sanitize URL for PDF iframe
+    if (file.type === 'pdf') {
+      this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    } else {
+      this.safePreviewUrl = null;
+    }
+    
+    this.isModalOpen = true;
+  }
 
-  // Method to close the modal and clean up
+  /**
+   * Close the modal and clean up
+   */
   closeModal() {
     this.selectedFile = null;
+    this.safePreviewUrl = null;
     this.isModalOpen = false;
   }
 

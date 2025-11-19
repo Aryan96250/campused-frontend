@@ -33,6 +33,12 @@
             </div>
 
             <div class="sidebar-content">
+               <div *ngIf="isLoadingChannels" class="d-flex justify-content-center align-items-center py-4">
+                <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="text-muted">Loading channels...</span>
+              </div>
               <ng-container *ngIf="channels.length > 0; else noChannelsDesktop">
                 <div class="channel-list">
                   <div *ngFor="let channel of channels"
@@ -86,6 +92,12 @@
             </div>
 
             <div class="sidebar-content">
+                  <div *ngIf="isLoadingChannels" class="d-flex justify-content-center align-items-center py-4">
+                <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="text-muted">Loading channels...</span>
+              </div>
               <ng-container *ngIf="channels.length > 0; else noChannelsMobile">
                 <div class="channel-list">
                   <div *ngFor="let channel of channels"
@@ -122,6 +134,15 @@
 
         <!-- Main Chat Area -->
         <div class="col-lg-9 col-md-8 col-12 chat-main">
+             <!-- Loader for chat loads -->
+          <div *ngIf="isLoadingChat" class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-light bg-opacity-75 z-index-10">
+            <div class="text-center">
+              <div class="spinner-border text-primary mb-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="text-muted mb-0">Loading chat...</p>
+            </div>
+          </div>
           <div class="chat-wrapper">
             <div class="loading-bar" *ngIf="isProcessing"></div>
 

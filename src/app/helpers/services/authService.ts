@@ -2,6 +2,7 @@ import { inject, Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { GoogleAuthService } from './googleService';
 import { FileCacheService } from './file-cache.service';
+import { Router } from '@angular/router';
 interface AuthResponse {
   message: string;
   access_token: string;
@@ -19,7 +20,7 @@ export class AuthService {
   private userName = 'user_name';
   private injector: Injector;
 
-  constructor(injector: Injector,private fileCache: FileCacheService) {
+  constructor(injector: Injector,private fileCache: FileCacheService, private router:Router) {
     this.injector = injector;
 
     const token = this.getTokenFromStorage();
@@ -73,6 +74,7 @@ export class AuthService {
     } catch (error) {
     } finally {
       this.clearToken();
+      this.router.navigateByUrl('login');
     }
   }
 }

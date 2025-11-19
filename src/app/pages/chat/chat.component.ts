@@ -64,6 +64,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   channelId: any;
   remainingTokens: number = 0;
 
+
+    isLoadingChannels: boolean = false;
+  isLoadingChat: boolean = false;
+
   // Modal properties
   selectedFile: any = null;
   isModalOpen: boolean = false;
@@ -145,13 +149,13 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     this.isRefreshingChannels = true;
     this.pendingChannelRefresh = false;
-    
+     this.isLoadingChannels = true;
     return new Promise((resolve) => {
       this.api.listChannels().subscribe({
         next: (list: any) => {
           this.channels = list ?? [];
           this.isRefreshingChannels = false;
-          
+           this.isLoadingChannels = false;
           // Fetch token credits only when loading channel list
           this.fetchTokenCredits();
           
@@ -164,6 +168,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.isRefreshingChannels = false;
+           this.isLoadingChannels = false;
           resolve();
         }
       });
@@ -190,22 +195,31 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   loadChannel(id: string) {
     this.activeChannelId = id;
-    this.api.getChannel(id).subscribe((payload: any) => {
-      const conv = payload?.conversation ?? [];
-      this.messages = conv
-        .filter((m: any) => m?.role !== 'system')
-        .map((m: any) => ({
-          text: m?.content ?? m?.text ?? '',
-          isUser: m?.role === 'user',
-          timestamp: Date.now(),
-          files: this.parseMessageFiles(m),
-          liked: m?.liked ?? null
-        }));
-      
-      // Preload image previews after messages are loaded
-      this.preloadImagePreviews(id);
-      
-      queueMicrotask(() => this.scrollToBottom());
+    this.isLoadingChat = true; // Start loading
+    this.api.getChannel(id).subscribe({
+      next: (payload: any) => {
+        const conv = payload?.conversation ?? [];
+        this.messages = conv
+          .filter((m: any) => m?.role !== 'system')
+          .map((m: any) => ({
+            text: m?.content ?? m?.text ?? '',
+            isUser: m?.role === 'user',
+            timestamp: Date.now(),
+            files: this.parseMessageFiles(m),
+            liked: m?.liked ?? null
+          }));
+        
+        // Preload image previews after messages are loaded
+        this.preloadImagePreviews(id);
+        
+        queueMicrotask(() => this.scrollToBottom());
+        this.isLoadingChat = false; // Stop loading
+      },
+      error: (err: any) => {
+ console.error('Failed to load channel:', err);
+        this.showToast('Failed to load chat', 'error');
+        this.isLoadingChat = false; // Stop loading on error
+      }
     });
     this.mobileSidebarOpen = false;
     this.router.navigate(['/chat', id], { replaceUrl: true });
@@ -683,5 +697,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.closeModal(); 
     this.destroy$.next();
     this.destroy$.complete();
+        this.isLoadingChannels = false; // Reset loaders
+    this.isLoadingChat = false;
   }
 }

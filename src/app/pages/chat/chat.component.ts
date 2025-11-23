@@ -12,6 +12,7 @@ import { HeaderComponent } from '../header/header.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { FileValidationService } from '../../helpers/FileValidation.service';
 
 interface ChatMsg {
   text: string;
@@ -79,6 +80,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   constructor(
     private api: ApiService,
+    private fileValidationService: FileValidationService,
     private chatStateService: ChatStateService,
     private tokenService: TokenService,
     private fileCache: FileCacheService, 
@@ -91,7 +93,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.subscribeToInitialData();
     this.subscribeToTokenUpdates();
-    
+    this.fetchTokenCredits();
     if (!this.channelsRefreshed) {
       this.channelsRefreshed = true;
       this.refreshChannels().then(() => {
@@ -108,7 +110,11 @@ export class ChatComponent implements OnInit, OnDestroy {
             }
           }
         });
-      });
+      }) .catch(err => {
+     if (err.status === 401) {
+         this.isInitializing = false;
+     }
+  });
     }
   }
 
@@ -157,8 +163,6 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.isRefreshingChannels = false;
            this.isLoadingChannels = false;
           // Fetch token credits only when loading channel list
-          this.fetchTokenCredits();
-          
           if (this.pendingChannelRefresh) {
             this.pendingChannelRefresh = false;
             setTimeout(() => this.refreshChannels(), 100);
@@ -166,10 +170,10 @@ export class ChatComponent implements OnInit, OnDestroy {
           
           resolve();
         },
-        error: () => {
+        error: (err) => {
           this.isRefreshingChannels = false;
            this.isLoadingChannels = false;
-          resolve();
+          Promise.reject()
         }
       });
     });
@@ -188,6 +192,9 @@ export class ChatComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
+        if(error.status === 401){
+            this.destroy$.next();
+        }
         console.error('Failed to fetch token credits', error);
       }
     });
@@ -338,11 +345,42 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.filePicker.nativeElement.click();
   }
 
-  onFilesSelected(evt: Event) {
+onFilesSelected(evt: Event) {
     const input = evt.target as HTMLInputElement;
-    if (input.files?.length) {
-      this.pendingFiles = Array.from(input.files);
-      this.generateFilePreviews();
+    if (!input.files?.length) return;
+
+    // Validate files using the service
+    const validationResult = this.fileValidationService.validateFiles(input.files);
+
+    if (!validationResult.valid) {
+      // Show error messages for invalid files
+      if (validationResult.invalidFiles && validationResult.invalidFiles.length > 0) {
+        validationResult.invalidFiles.forEach(item => {
+          this.showToast(item.reason, 'error');
+        });
+      }
+
+      // If there are some valid files, add them
+      if (validationResult.validFiles && validationResult.validFiles.length > 0) {
+        this.pendingFiles = validationResult.validFiles;
+        this.generateFilePreviews();
+
+        const successCount = validationResult.validFiles.length;
+        const failCount = validationResult.invalidFiles?.length || 0;
+        this.showToast(
+          `${successCount} file(s) added successfully. ${failCount} file(s) rejected due to size limit.`,
+          'info'
+        );
+      } else {
+        // Clear the input if no valid files
+        input.value = '';
+      }
+    } else {
+      // All files are valid
+      if (validationResult.validFiles) {
+        this.pendingFiles = validationResult.validFiles;
+        this.generateFilePreviews();
+      }
     }
   }
 
@@ -634,7 +672,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   private showToast(text: string, type: 'info'|'success'|'error' = 'success') {
     this.toastMsg = { text, type };
     clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => (this.toastMsg = null), 2500);
+    // Longer timeout for error messages
+    const timeout = type === 'error' ? 4000 : 2500;
+    this.toastTimer = setTimeout(() => (this.toastMsg = null), timeout);
   }
 
   /**
@@ -692,12 +732,13 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.isModalOpen = false;
   }
 
+
   ngOnDestroy() {
     this.clearFilePreviews();
     this.closeModal(); 
     this.destroy$.next();
     this.destroy$.complete();
-        this.isLoadingChannels = false; // Reset loaders
+    this.isLoadingChannels = false; // Reset loaders
     this.isLoadingChat = false;
   }
 }

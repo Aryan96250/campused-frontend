@@ -5,6 +5,8 @@ import { AuthService } from '../../helpers/services/authService';
 import { TokenService, TokenInfo } from '../../helpers/services/token.service';
 import { BsDropdownDirective, BsDropdownToggleDirective, BsDropdownMenuDirective } from 'ngx-bootstrap/dropdown';
 import { Subject, takeUntil } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
+import { ApiService } from '../../helpers/services/apiService';
 
 @Component({
   selector: 'app-header',
@@ -30,7 +32,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router, 
     private auth: AuthService,
-    private tokenService: TokenService
+    private tokenService: TokenService,
+    private toastr:ToastrService,
+    private apiService:ApiService
   ) {
     this.currentUrl = this.router.url === '/';
     this.userName = localStorage.getItem('userName');
@@ -38,6 +42,28 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (this.token || this.userName) {
       this.showButtons = true;
     }
+    this.fetchTokenCredits();
+  }
+
+    private fetchTokenCredits(): void {
+    this.apiService.getUserCredits().subscribe({
+      next: (response: any) => {
+        if (response) {
+          this.tokenService.updateFullInfo({
+            total_tokens: response.total_tokens || 0,
+            used_tokens: response.used_tokens || 0,
+            remaining_tokens: response.remaining_tokens || 0,
+            last_updated: new Date().toISOString()
+          });
+        }
+      },
+      error: (error:any) => {
+        if(error.status === 401){
+            this.destroy$.next();
+        }
+        console.error('Failed to fetch token credits', error);
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -61,6 +87,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.showLogoutMenu = false;
     this.showButtons = false;
     this.tokenService.clearTokenInfo();
+    this.toastr.success('You have been signed out.', 'Success');
     this.auth.logout();
   }
 

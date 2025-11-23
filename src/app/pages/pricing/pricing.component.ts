@@ -33,13 +33,35 @@ declare var Razorpay: any;
 export class PricingComponent implements OnInit {
   plans: PricingPlan[] = [];
   isLoading: boolean = true;
+  
+  // Cache configuration
+  private readonly CACHE_KEY = 'pricing_plans_cache';
+  private readonly CACHE_DURATION = 1000 * 60 * 60; // 1 hour in milliseconds
 
-  constructor(private apiService: ApiService,private toastr: ToastrService,private tokenService: TokenService,
-) {}
+  constructor(
+    private apiService: ApiService,
+    private toastr: ToastrService,
+    private tokenService: TokenService
+  ) {}
 
   ngOnInit(): void {
-    this.getPlans();
+    this.loadPlans();
     this.loadRazorpayScript();
+  }
+
+  loadPlans(): void {
+    // Try to load from cache first
+    const cachedData = this.getFromCache();
+    
+    if (cachedData) {
+      this.plans = cachedData;
+      this.isLoading = false;
+      // Optionally refresh in background
+      this.refreshPlansInBackground();
+    } else {
+      // No cache, load from API
+      this.getPlans();
+    }
   }
 
   getPlans(): void {
@@ -47,6 +69,7 @@ export class PricingComponent implements OnInit {
     this.apiService.getSubscriptionPlan().subscribe({
       next: (response) => {
         this.plans = this.mapApiResponseToPlans(response);
+        this.saveToCache(this.plans);
         this.isLoading = false;
       },
       error: (error) => {
@@ -54,6 +77,54 @@ export class PricingComponent implements OnInit {
         this.toastr.error('Failed to load pricing plans. Please refresh the page.');
       }
     });   
+  }
+
+  refreshPlansInBackground(): void {
+    // Silently refresh plans in background without showing loader
+    this.apiService.getSubscriptionPlan().subscribe({
+      next: (response) => {
+        this.plans = this.mapApiResponseToPlans(response);
+        this.saveToCache(this.plans);
+      },
+      error: (error) => {
+        // Silently fail, user already has cached data
+      }
+    });
+  }
+
+  saveToCache(plans: PricingPlan[]): void {
+    try {
+      const cacheData = {
+        plans: plans,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem(this.CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+      // Handle storage errors silently
+    }
+  }
+
+  getFromCache(): PricingPlan[] | null {
+    try {
+      const cached = sessionStorage.getItem(this.CACHE_KEY);
+      if (!cached) return null;
+
+      const cacheData = JSON.parse(cached);
+      const age = Date.now() - cacheData.timestamp;
+
+      // Check if cache is still valid
+      if (age < this.CACHE_DURATION) {
+        return cacheData.plans;
+      } else {
+        // Cache expired, clear it
+        sessionStorage.removeItem(this.CACHE_KEY);
+        return null;
+      }
+    } catch (error) {
+      // If parsing fails, clear cache
+      sessionStorage.removeItem(this.CACHE_KEY);
+      return null;
+    }
   }
 
   mapApiResponseToPlans(apiPlans: any[]): PricingPlan[] {

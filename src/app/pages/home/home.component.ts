@@ -7,6 +7,8 @@ import { HeaderComponent } from '../header/header.component';
 import { ChatStateService } from '../../helpers/services/chat.service';
 import { PendingChatService } from '../../helpers/services/PendingChat';
 import { AuthService } from '../../helpers/services/authService';
+import { FileValidationService } from '../../helpers/FileValidation.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-home',
@@ -91,18 +93,47 @@ export class HomeComponent {
     private router: Router,
     private chatStateService: ChatStateService,
     private pendingChatService:PendingChatService,
-    private authService:AuthService
+    private authService:AuthService,
+    private fileValidationService:FileValidationService,
+    private toastr:ToastrService
   ) {}
 
   openFileDialog(): void {
     this.filePicker.nativeElement.click();
   }
 
-  onFilesSelected(evt: Event): void {
+
+   onFilesSelected(evt: Event) {
     const input = evt.target as HTMLInputElement;
-    if (input.files?.length) {
-      this.selectedFiles = Array.from(input.files);
-      this.generateFilePreviewUrls();
+    if (!input.files?.length) return;
+
+    const validationResult = this.fileValidationService.validateFiles(input.files);
+
+    if (!validationResult.valid) {
+      if (validationResult.invalidFiles && validationResult.invalidFiles.length > 0) {
+        validationResult.invalidFiles.forEach(item => {
+          this.toastr.error(item.reason, 'Error');
+        });
+      }
+
+      if (validationResult.validFiles && validationResult.validFiles.length > 0) {
+        this.selectedFiles = validationResult.validFiles;
+        this.generateFilePreviewUrls();
+
+        const successCount = validationResult.validFiles.length;
+        const failCount = validationResult.invalidFiles?.length || 0;
+        this.toastr.info(
+          `${successCount} file(s) added successfully. ${failCount} file(s) rejected due to size limit.`,
+          'Info'
+        );
+      } else {
+        input.value = '';
+      }
+    } else {
+      if (validationResult.validFiles) {
+        this.selectedFiles = validationResult.validFiles;
+        this.generateFilePreviewUrls();
+      }
     }
   }
 

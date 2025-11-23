@@ -14,10 +14,10 @@
         [routerLinkActiveOptions]="{ exact: true }"
         >Home</a
       >
-      <a routerLink="/pricing" routerLinkActive="active">Pricing</a>
-      <a routerLink="/exams" routerLinkActive="active">Exams</a>
-      <a routerLink="/contact-us" routerLinkActive="active">Contact Us</a>
       <a routerLink="/chat" routerLinkActive="active" *ngIf="showButtons">Chat</a>
+      <a routerLink="/exams" routerLinkActive="active">Exams</a>
+      <a routerLink="/pricing" routerLinkActive="active">Pricing</a>
+      <a routerLink="/contact-us" routerLinkActive="active">Contact Us</a>
     </nav>
 
     <!-- Desktop CTA -->
@@ -72,10 +72,10 @@
         (click)="closeMobileMenu()"
         >Home</a
       >
-      <a routerLink="/pricing" routerLinkActive="active" (click)="closeMobileMenu()">Pricing</a>
-      <a routerLink="/exams" routerLinkActive="active" (click)="closeMobileMenu()">Exams</a>
-      <a routerLink="/contact-us" routerLinkActive="active" (click)="closeMobileMenu()">Contact Us</a>
       <a routerLink="/chat" routerLinkActive="active" *ngIf="showButtons" (click)="closeMobileMenu()">Chat</a>
+      <a routerLink="/exams" routerLinkActive="active" (click)="closeMobileMenu()">Exams</a>
+      <a routerLink="/pricing" routerLinkActive="active" (click)="closeMobileMenu()">Pricing</a>
+      <a routerLink="/contact-us" routerLinkActive="active" (click)="closeMobileMenu()">Contact Us</a>
     </nav>
 
     <div class="mobile-nav__cta" *ngIf="showButtons">

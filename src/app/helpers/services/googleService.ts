@@ -219,6 +219,5 @@ export class GoogleAuthService {
     }
     const authService = this.injector.get(AuthService);
     authService.clearToken();
-    this.toastr.success('You have been signed out.', 'Success');
   }
 }

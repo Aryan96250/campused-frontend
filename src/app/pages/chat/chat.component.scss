@@ -22,12 +22,13 @@ app-footer {
 .chat-container {
   flex: 1 1 auto;
   background: #f8f9fa;
-  height: 550px;
+  height: calc(100vh - 70px); /* Adjust 70px based on your header height */
 }
 
 .chat-container .container-fluid {
   max-width: 1600px;
   margin: 0 auto;
+  height: 100%;
 }
 
 .container-fluid,
@@ -45,13 +46,14 @@ app-footer {
   background: #ffffff;
   border-right: 1px solid #e9ecef;
   flex-direction: column;
+  height: 100%;
 }
 
 .sidebar {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  height: 504px;
+  height: 100%;
 }
 
 .sidebar-header {
@@ -161,6 +163,7 @@ app-footer {
   flex-direction: column;
   position: relative;
   min-height: 0;
+  height: 100%;
 }
 
 .loading-bar {
@@ -181,7 +184,7 @@ app-footer {
 /* ---------- Messages Container ---------- */
 
 .messages-container {
-  // flex: 1 1 auto;
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding: 24px;
@@ -237,28 +240,13 @@ app-footer {
   text-align: end;
   
   .files-grid {
-    // display: grid;
-    // grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    // gap: 10px;
-    
-    @media (max-width: 768px) {
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 8px;
-    }
     .message-files .file-preview .preview-image {
-    width: 32%;
-    margin: 1px 0 0 152px !important;
-}
+      width: 32%;
+      margin: 1px 0 0 152px !important;
+    }
   }
   
   .file-item {
-    // border-radius: 12px;
-    // overflow: hidden;
-    // background: #f8f9fa;
-    // border: 1px solid #e9ecef;
-    // transition: all 0.2s ease;
-    // cursor: pointer;
-    
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -268,7 +256,6 @@ app-footer {
   .file-preview {
     position: relative;
     width: 100%;
-    // aspect-ratio: 16/9;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -276,15 +263,13 @@ app-footer {
     overflow: hidden;
     
     .preview-image {
-width: 28%;
-    height: 54%;
-    object-fit: cover;
-    margin: 1px 0 0 428px;
-
+      width: 28%;
+      height: 54%;
+      object-fit: cover;
+      margin: 1px 0 0 428px;
     }
     
     &.file-icon-preview {
-      // flex-direction: column;
       padding: 20px 12px;
       background: #f8f9fa;
       
@@ -482,7 +467,6 @@ width: 28%;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  // height: 100%;
   text-align: center;
   color: #6c757d;
   margin-top: 100px !important;
@@ -508,7 +492,8 @@ width: 28%;
   background: #ffffff;
   padding: 16px 24px;
   flex: 0 0 auto;
-  position: relative;
+  position: sticky;
+  bottom: 0;
   z-index: 1;
 }
 
@@ -675,26 +660,60 @@ width: 28%;
 
 /* ---------- Toast ---------- */
 
-.toast-container { z-index: 1050; }
+.toast-container {
+  z-index: 9999;
 
-.toast {
-  min-width: 250px;
-  border-radius: 12px;
-  border: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  .toast {
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease-in-out;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    &.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .toast-body {
+      padding: 12px 16px;
+      font-size: 14px;
+      line-height: 1.5;
+
+      svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+    }
+
+    &.bg-success {
+      background-color: #28a745 !important;
+    }
+
+    &.bg-danger {
+      background-color: #dc3545 !important;
+    }
+
+    &.bg-info {
+      background-color: #17a2b8 !important;
+    }
+  }
 }
 
-.toast.show { animation: toastSlideIn 0.3s ease; }
-
-@keyframes toastSlideIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+.file-preview-item {
+  animation: slideIn 0.3s ease-out;
 }
 
-.toast-body {
-  padding: 12px 16px;
-  font-size: 0.9rem;
-  font-weight: 500;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ---------- Mobile Chat Header ---------- */
@@ -783,16 +802,17 @@ button.btn-close-sidebar {
 /* ---------- Responsive ---------- */
 
 @media (max-width: 767.98px) {
-      .message-files .file-preview .preview-image {
+  .message-files .file-preview .preview-image {
     width: 32%;
     margin: 1px 0 0 152px !important;
-}
+  }
+  
   .chat-container {
-    // height: 100vh;
     min-height: 0;
   }
-  .container-fluid{
-    height:100%  !important
+  
+  .container-fluid {
+    height: 100% !important;
   }
 
   .messages-container { 
@@ -810,7 +830,7 @@ button.btn-close-sidebar {
     border-top: 1px solid #e9ecef; 
     background: #fff; 
     padding: 12px 16px; 
-    z-index: 1050 !important; /* Higher than sidebar */
+    z-index: 1050 !important;
   } 
 
   .input-area.desktops { 
@@ -820,8 +840,9 @@ button.btn-close-sidebar {
   .message-bubble { 
     max-width: 85%; 
   }
-  .empty-chat-state{
-        margin-top: 150px !important;
+  
+  .empty-chat-state {
+    margin-top: 150px !important;
   }
   
   .message-files {
@@ -883,14 +904,10 @@ button.btn-close-sidebar {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    // height: 0;
-    // flex: 1 1 auto;
   }
 
   .messages-container {
-    // flex: 1 1 auto;
     min-height: 0;
-    // height: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -911,7 +928,6 @@ button.btn-close-sidebar {
   .input-area.mobiles { display: none !important; } 
   .input-area.desktops { display: block !important; }
   
-  /* Ensure desktop input stays at bottom */
   .chat-wrapper {
     display: flex;
     flex-direction: column;
@@ -972,9 +988,10 @@ button.btn-close-sidebar {
   }
 }
 
+/* ---------- Modal Styles ---------- */
 
 .file-preview-modal {
-  z-index: 1200 !important; // higher than sidebar
+  z-index: 1200 !important;
 }
 
 .file-preview-modal .modal-dialog {
@@ -982,7 +999,7 @@ button.btn-close-sidebar {
 }
 
 .modal-backdrop {
-  z-index: 1190 !important; // just behind modal
+  z-index: 1190 !important;
   background-color: rgba(0, 0, 0, 0.6);
 }
 

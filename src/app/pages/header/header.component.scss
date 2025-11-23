@@ -152,7 +152,7 @@ body {
 }
 
 .free- p {
-  font-family: "Poppins", sans-serif;
+  font-family: "Quicksand", sans-serif;
   font-weight: 500;
   font-style: normal;
   font-size: 20px;
@@ -363,8 +363,6 @@ body {
 
 
 
-// Add these styles to your header.component.scss
-
 // Desktop Token Display
 .token-display {
   display: flex;
@@ -372,7 +370,7 @@ body {
   gap: 4px;
   margin-right: 16px;
   padding: 8px 12px;
-  background: rgba(51, 153, 204, 0.1);
+  background: rgba(255, 111, 61, 0.1);
   border-radius: 8px;
   min-width: 100px;
 
@@ -401,7 +399,7 @@ body {
 
     .token-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, #3399cc, #66ccff);
+      background: linear-gradient(90deg, #ff6f3d, #ff8c61);
       transition: width 0.3s ease;
     }
   }
@@ -434,8 +432,8 @@ body {
   margin-bottom: 16px;
 
   .token-card {
-    background: linear-gradient(135deg, rgba(51, 153, 204, 0.1), rgba(102, 204, 255, 0.1));
-    border: 1px solid rgba(51, 153, 204, 0.2);
+    background: linear-gradient(135deg, rgba(255, 111, 61, 0.1), rgba(255, 140, 97, 0.1));
+    border: 1px solid rgba(255, 111, 61, 0.2);
     border-radius: 12px;
     padding: 16px;
     
@@ -478,7 +476,7 @@ body {
 
       .token-bar-fill {
         height: 100%;
-        background: linear-gradient(90deg, #3399cc, #66ccff);
+        background: linear-gradient(90deg, #ff6f3d, #ff8c61);
         transition: width 0.3s ease;
       }
     }

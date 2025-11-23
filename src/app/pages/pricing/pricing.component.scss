@@ -1,8 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap");
 
 .pricing-page {
-  // font-family:"Poppins", sans-serif;
-  // background: #fafafa;
+  font-family: "Quicksand", sans-serif;
+  background: #fafafa;
   color: #333;
   line-height: 1.6;
   margin-bottom: 30px;
@@ -23,7 +23,7 @@
     font-weight: 100;
     color: #1E1E1E;
     margin-bottom: 8px;
-    font-family: system-ui;
+    font-family: "Quicksand", sans-serif;
 
     &.brand {
       font-size: 33px;
@@ -96,7 +96,7 @@
 
   .price-label {
     font-size: 13px;
- color: #555;
+    color: #555;
     margin-bottom: 24px;
   }
 
@@ -124,7 +124,7 @@
 
 .badge {
   position: absolute;
- top: -23px;
+  top: -23px;
   left: 50%;
   transform: translateX(-50%);
   background: #BD94F4;
@@ -208,7 +208,53 @@
 }
 
 .price span {
-    font-size: 15px;
-    font-weight: 100;
-    color: #555;
+  font-size: 15px;
+  font-weight: 100;
+  color: #555;
+}
+
+// Loader styles
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 60px 20px;
+  
+  p {
+    margin-top: 20px;
+    color: #666;
+    font-size: 16px;
+    font-weight: 500;
+  }
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3399cc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.grid {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

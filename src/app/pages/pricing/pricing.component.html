@@ -10,7 +10,14 @@
 
   <section class="tiers">
     <div class="container">
-      <div class="grid">
+      <!-- Loader -->
+      <div class="loader-container" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Loading pricing plans...</p>
+      </div>
+
+      <!-- Pricing Cards -->
+      <div class="grid" *ngIf="!isLoading">
         <div class="card" *ngFor="let plan of plans" [class.popular]="plan.isPopular">
           <div class="badge" *ngIf="plan.isPopular">
             <img src="assets/images/starIcon.png"/>Most Popular
@@ -37,7 +44,7 @@
 
   <div class="footer">
     <div class="container">
-      <p>Over 1,00,000 students already trust ComputED AI to study smarter.</p>
+      <p>Over 1,00,000 students already trust CompusED AI to study smarter.</p>
       <a href="#">View Pricing Page</a>
     </div>
   </div>

@@ -42,7 +42,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (this.token || this.userName) {
       this.showButtons = true;
     }
-    this.fetchTokenCredits();
+    if(this.auth.isAuthenticated()){
+      this.fetchTokenCredits();
+    }
   }
 
     private fetchTokenCredits(): void {

@@ -1,59 +1,77 @@
-# CampusedAi
+# Campused AI — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.8.
+Angular frontend for **Campused AI**, an AI-assisted study product designed around exam-preparation and learning workflows. The interface includes authentication, study/chat experiences, exam selection, pricing and supporting product pages.
 
-## Development server
+## Features visible in this frontend
 
-To start a local development server, run:
+- Authentication flows: login, signup, OTP verification, forgot/reset password and email verification
+- Study assistant and chat interface
+- File selection for study material (images, PDF, DOC/DOCX and text files in the chat UI)
+- Exam-oriented learning pages for NEET, JEE, UPSC and other study goals
+- Pricing and contact pages
+- Social sign-in integration package
+- RevenueCat web purchase integration package
+- Shared authentication, API and chat state services
 
-```bash
-ng serve
-```
+> This repository contains the frontend. Backend services, API availability, credentials and production configuration are managed separately.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Tech stack
 
-## Code scaffolding
+- Angular 19 (standalone components)
+- TypeScript
+- RxJS
+- Bootstrap and ngx-bootstrap
+- ngx-toastr
+- Angular animations
+- Jasmine and Karma test tooling
+- Social login and RevenueCat client packages
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Requirements
 
-```bash
-ng generate component component-name
-```
+- Node.js version compatible with the installed Angular 19 toolchain
+- npm
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## Getting started
 
 ```bash
-ng test
+git clone https://github.com/Aryan96250/campused-frontend.git
+cd campused-frontend
+npm ci
+npm start
 ```
 
-## Running end-to-end tests
+Open the local URL printed by Angular CLI (typically `http://localhost:4200`).
 
-For end-to-end (e2e) testing, run:
+## Useful commands
 
-```bash
-ng e2e
+| Command | Description |
+| --- | --- |
+| `npm start` | Run the development server |
+| `npm run build` | Build the application |
+| `npm test` | Run unit tests |
+| `npm run watch` | Build in watch mode |
+
+## Repository layout
+
+```text
+src/
+├── app/
+│   ├── helpers/       # Auth, guards, interceptors, API and shared services
+│   └── pages/         # Authentication, chat, exams, home, pricing and contact
+└── assets/            # Images and other static assets
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Configuration and security
 
-## Additional Resources
+- Configure API endpoints and third-party credentials for your own environment before running integrations.
+- Never commit production secrets, access tokens, private keys or real user data.
+- Review environment-specific configuration before deploying a fork.
+- Third-party services may require separate provider-side setup.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Testing
+
+Run `npm test` for the configured Karma/Jasmine test suite and `npm run build` to validate a production build.
+
+## Author
+
+**Aryan Chauhan** · [GitHub](https://github.com/Aryan96250)
